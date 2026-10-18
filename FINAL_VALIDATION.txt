@@ -1,0 +1,14 @@
+Final validation for algo_main_tg
+
+Environment: tg_algo
+Result: 447 passed in 62.92s
+
+Key diagnosis and fixes:
+- Preserved the additive, non-browser-rewrite constraint: browser startup/login/asset selection logic was left intact.
+- Corrected the stale confirmation contract so public decision reasons use "awaiting_next_closed_confirmation" while execution logs retain the internal stale-confirmation signal for diagnostics.
+- Hardened the market refresh path to guard missing live-feed objects and emit only the native-forming payload expected by the monitoring contract.
+- Kept provenance logging for seed warmup so the 30s/60s/5m source state is visible without claiming stale data as fresh.
+- Finalized the support for closed-candle momentum and cooldown gating without altering the browser automation flow.
+
+Validation command:
+conda activate tg_algo && python -m pytest -q

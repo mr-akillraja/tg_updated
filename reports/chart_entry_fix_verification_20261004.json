@@ -1,0 +1,147 @@
+{
+  "log": "logs/runs/unified_20261004_024538.log",
+  "observed_seconds": 64.059,
+  "decision_records": 65,
+  "median_evaluation_interval_seconds": 1.0011,
+  "unique_confirmed_buy_setups": 0,
+  "fresh_setups_in_five_second_entry_window": 0,
+  "fresh_setups_in_entry_window": 0,
+  "setups_also_passing_logged_5m_filter": 0,
+  "observed_accepted_order_ids": 0,
+  "decision_reasons": {
+    "30s_ema20_vs_ema50": 61,
+    "stale_candle_snapshot": 3,
+    "chart_update_in_progress": 1
+  },
+  "evaluated_entry_candles": 2,
+  "decision_reasons_per_unique_entry": {
+    "30s_ema20_vs_ema50": 2,
+    "chart_update_in_progress": 1,
+    "stale_candle_snapshot": 2
+  },
+  "rejection_stages_per_unique_entry": {
+    "execution": 1,
+    "no_qualifying_setup": 2,
+    "stale_data": 2
+  },
+  "rejection_reasons_per_unique_entry": {
+    "30s_ema20_vs_ema50": 2,
+    "chart_update_in_progress": 1,
+    "stale_candle_snapshot": 2
+  },
+  "no_trade_explanation": "No qualifying closed-candle BUY setup was observed. Recorded blockers by unique entry candle: execution conditions or unresolved orders (1), entry rules (2), stale or unavailable data (2).",
+  "failed_rules_per_unique_setup": {
+    "30s_ema20_vs_ema50": 2,
+    "1m_pullback_close_vs_ema21": 2,
+    "1m_pullback_swing_progression": 2,
+    "30s_obstacle_clearance": 2,
+    "1m_ema9_vs_ema21": 2,
+    "1m_close_breaks_swing": 1
+  },
+  "target_trades_per_hour": [
+    10,
+    15
+  ],
+  "frequency_target_verified": false,
+  "limitations": [
+    "Counts describe this recorded interval; no trades or outcomes are simulated.",
+    "Repeated evaluations of one setup count once; risk limits and open orders may block candidates.",
+    "decision_reasons counts polls; unique-entry rejection counts do not. A candle can encounter multiple blockers.",
+    "Missing entry timestamps count as one unavailable-data episode per asset, outside evaluated_entry_candles.",
+    "Older logs may report fresh quotes without recording closed-history freshness.",
+    "Logged filter results reflect the version running when the log was written.",
+    "A market-dependent 10\u201315 trades/hour rate is not guaranteed by these counts."
+  ],
+  "chart_verifications": [
+    {
+      "attempts": 1,
+      "changed": true,
+      "expected": {
+        "indicators": [
+          {
+            "name": "EMA",
+            "period": 20
+          },
+          {
+            "name": "EMA",
+            "period": 50
+          },
+          {
+            "name": "RSI",
+            "period": 14
+          }
+        ],
+        "timeframe": "30s"
+      },
+      "observed": {
+        "indicators": [
+          {
+            "name": "RSI",
+            "period": 14
+          },
+          {
+            "name": "EMA",
+            "period": 20
+          },
+          {
+            "name": "EMA",
+            "period": 50
+          }
+        ],
+        "timeframe": "30s"
+      },
+      "reason": "configured",
+      "source": "broker_ui",
+      "timeframe_seconds": 30,
+      "verified": true,
+      "view": "trend"
+    },
+    {
+      "changed": false,
+      "expected": {
+        "indicators": [
+          {
+            "name": "EMA",
+            "period": 20
+          },
+          {
+            "name": "EMA",
+            "period": 50
+          },
+          {
+            "name": "RSI",
+            "period": 14
+          }
+        ],
+        "timeframe": "30s"
+      },
+      "observed": {
+        "indicators": [
+          {
+            "name": "RSI",
+            "period": 14
+          },
+          {
+            "name": "EMA",
+            "period": 20
+          },
+          {
+            "name": "EMA",
+            "period": 50
+          }
+        ],
+        "timeframe": "30s"
+      },
+      "reason": "already_matched",
+      "source": "broker_ui",
+      "timeframe_seconds": 30,
+      "verified": true,
+      "view": "trend"
+    }
+  ],
+  "runtime_errors": [],
+  "observation_only": true,
+  "shutdown_completed": true,
+  "full_suite_tests_passed": 265,
+  "strategy_thresholds_changed": false
+}

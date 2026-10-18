@@ -1,0 +1,65 @@
+{
+  "log": "logs/runs/unified_20261004_022021.log",
+  "observed_seconds": 537.524,
+  "decision_records": 538,
+  "median_evaluation_interval_seconds": 1.0009,
+  "unique_confirmed_buy_setups": 0,
+  "fresh_setups_in_five_second_entry_window": 0,
+  "fresh_setups_in_entry_window": 0,
+  "setups_also_passing_logged_5m_filter": 0,
+  "observed_accepted_order_ids": 0,
+  "decision_reasons": {
+    "1m_close_vs_ema21": 24,
+    "30s_close_vs_ema20": 445,
+    "stale_or_unavailable_quote": 11,
+    "30s_ema20_vs_ema50": 58
+  },
+  "evaluated_entry_candles": 10,
+  "decision_reasons_per_unique_entry": {
+    "1m_close_vs_ema21": 2,
+    "30s_close_vs_ema20": 8,
+    "30s_ema20_vs_ema50": 2,
+    "stale_or_unavailable_quote": 6
+  },
+  "rejection_stages_per_unique_entry": {
+    "no_qualifying_setup": 10,
+    "stale_data": 6
+  },
+  "rejection_reasons_per_unique_entry": {
+    "1m_close_vs_ema21": 2,
+    "30s_close_vs_ema20": 8,
+    "30s_ema20_vs_ema50": 2,
+    "stale_or_unavailable_quote": 6
+  },
+  "no_trade_explanation": "No qualifying closed-candle BUY setup was observed. Recorded blockers by unique entry candle: entry rules (10), stale or unavailable data (6).",
+  "failed_rules_per_unique_setup": {
+    "1m_rsi14_band": 9,
+    "30s_close_vs_ema20": 8,
+    "1m_pullback_vs_prior_swing": 9,
+    "1m_pullback_close_vs_ema21": 10,
+    "1m_confirmation_close_vs_ema9": 9,
+    "1m_close_breaks_swing": 10,
+    "30s_ema20_vs_ema50": 7,
+    "1m_close_breaks_previous_candle": 9,
+    "30s_obstacle_clearance": 10,
+    "1m_pullback_swing_progression": 10,
+    "1m_rsi14_direction": 7,
+    "1m_close_vs_ema21": 9,
+    "1m_ema9_vs_ema21": 7,
+    "30s_ema_slope_3_candles": 9
+  },
+  "target_trades_per_hour": [
+    10,
+    15
+  ],
+  "frequency_target_verified": false,
+  "limitations": [
+    "Counts describe this recorded interval; no trades or outcomes are simulated.",
+    "Repeated evaluations of one setup count once; risk limits and open orders may block candidates.",
+    "decision_reasons counts polls; unique-entry rejection counts do not. A candle can encounter multiple blockers.",
+    "Missing entry timestamps count as one unavailable-data episode per asset, outside evaluated_entry_candles.",
+    "Older logs may report fresh quotes without recording closed-history freshness.",
+    "Logged filter results reflect the version running when the log was written.",
+    "A market-dependent 10\u201315 trades/hour rate is not guaranteed by these counts."
+  ]
+}

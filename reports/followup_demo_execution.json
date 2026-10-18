@@ -1,0 +1,35 @@
+{
+  "log": "logs/runs/unified_20260930_034414.log",
+  "accepted": {
+    "id": "12534106199",
+    "asset": "EUR/USD OTC",
+    "amount": 200.0,
+    "duration": 60,
+    "payout": 0.85,
+    "accepted_at": 1790720067.0163906,
+    "demo": true,
+    "confirmation_source": "platform_order_id",
+    "timestamp": "2026-09-30T03:44:27.016539",
+    "signal": "BUY",
+    "state_key": "DEMO_EXECUTION_TEST",
+    "status": "accepted"
+  },
+  "settled": {
+    "result": "LOSS",
+    "pnl": -200.0,
+    "source": "platform",
+    "order_id": "12534106199",
+    "status": "settled"
+  },
+  "execution_state": null,
+  "restored_account": {
+    "date": "2026-09-30",
+    "accepted_count": 1,
+    "settled_count": 1,
+    "gross_loss": 200.0,
+    "net_pnl": -200.0,
+    "max_daily_trades": 20,
+    "max_daily_loss": 2000.0,
+    "strategy_settled": 0
+  }
+}

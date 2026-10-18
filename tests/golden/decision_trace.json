@@ -1,0 +1,101 @@
+[
+  {
+    "blocked_by": "pattern",
+    "case": "buy_no_pattern",
+    "decision": "WAIT",
+    "direction": null,
+    "governor_history_length": 0,
+    "governor_taken_list": [],
+    "governor_threshold": null,
+    "order_sent": false,
+    "reason": "pattern_no_confirmation"
+  },
+  {
+    "blocked_by": "none",
+    "case": "sell_no_pattern",
+    "decision": "SELL",
+    "direction": null,
+    "governor_history_length": 0,
+    "governor_taken_list": [],
+    "governor_threshold": null,
+    "order_sent": true,
+    "reason": "order_accepted"
+  },
+  {
+    "blocked_by": "pattern",
+    "case": "pattern_conflict",
+    "decision": "WAIT",
+    "direction": null,
+    "governor_history_length": 0,
+    "governor_taken_list": [],
+    "governor_threshold": null,
+    "order_sent": false,
+    "reason": "pattern_no_confirmation"
+  },
+  {
+    "blocked_by": "pattern",
+    "case": "governor_skip_low_strength",
+    "decision": "WAIT",
+    "direction": null,
+    "governor_history_length": 0,
+    "governor_taken_list": [],
+    "governor_threshold": null,
+    "order_sent": false,
+    "reason": "pattern_no_confirmation"
+  },
+  {
+    "blocked_by": "pattern",
+    "case": "governor_take_high_strength",
+    "decision": "WAIT",
+    "direction": null,
+    "governor_history_length": 0,
+    "governor_taken_list": [],
+    "governor_threshold": null,
+    "order_sent": false,
+    "reason": "pattern_no_confirmation"
+  },
+  {
+    "blocked_by": "pattern",
+    "case": "governor_spacing",
+    "decision": "WAIT",
+    "direction": null,
+    "governor_history_length": 0,
+    "governor_taken_list": [],
+    "governor_threshold": null,
+    "order_sent": false,
+    "reason": "pattern_no_confirmation"
+  },
+  {
+    "blocked_by": "pattern",
+    "case": "governor_hourly_cap",
+    "decision": "WAIT",
+    "direction": null,
+    "governor_history_length": 0,
+    "governor_taken_list": [],
+    "governor_threshold": null,
+    "order_sent": false,
+    "reason": "pattern_no_confirmation"
+  },
+  {
+    "blocked_by": "pattern",
+    "case": "ema_no_direction",
+    "decision": "WAIT",
+    "direction": null,
+    "governor_history_length": 0,
+    "governor_taken_list": [],
+    "governor_threshold": null,
+    "order_sent": false,
+    "reason": "pattern_no_confirmation"
+  },
+  {
+    "blocked_by": "pattern",
+    "case": "doji_candle",
+    "decision": "WAIT",
+    "direction": null,
+    "governor_history_length": 0,
+    "governor_taken_list": [],
+    "governor_threshold": null,
+    "order_sent": false,
+    "reason": "pattern_no_confirmation"
+  }
+]

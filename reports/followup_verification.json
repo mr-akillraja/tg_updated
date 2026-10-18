@@ -1,0 +1,2746 @@
+{
+  "run_log": "logs/runs/unified_20260930_033858.log",
+  "mode": "strategy_enabled_demo",
+  "chart_display": {
+    "changed": false,
+    "expected": {
+      "indicators": [
+        {
+          "name": "EMA",
+          "period": 9
+        },
+        {
+          "name": "EMA",
+          "period": 21
+        },
+        {
+          "name": "RSI",
+          "period": 14
+        }
+      ],
+      "timeframe": "1m"
+    },
+    "observed": {
+      "indicators": [
+        {
+          "name": "EMA",
+          "period": 9
+        },
+        {
+          "name": "EMA",
+          "period": 21
+        },
+        {
+          "name": "RSI",
+          "period": 14
+        }
+      ],
+      "timeframe": "1m"
+    },
+    "reason": "already_matched",
+    "source": "broker_ui",
+    "timeframe_seconds": 60,
+    "verified": true,
+    "view": "entry"
+  },
+  "seeds": [
+    {
+      "asset": "EUR/USD OTC",
+      "closed_candles": 180,
+      "m1_upsampling": false,
+      "native_history_available": true,
+      "required_closed": 53,
+      "source": "broker_native_ws",
+      "timeframe_seconds": 30
+    },
+    {
+      "asset": "EUR/USD OTC",
+      "closed_candles": 70,
+      "m1_upsampling": false,
+      "native_history_available": true,
+      "required_closed": 21,
+      "source": "broker_native_ws",
+      "timeframe_seconds": 60
+    }
+  ],
+  "daily_risk": [
+    {
+      "accepted": 0,
+      "date": "2026-09-30",
+      "demo_tests_in_strategy_stats": false,
+      "event": "restored",
+      "gross_loss": 0,
+      "historical_unconfirmed_ftt_count": 0,
+      "loss_basis": "gross_loss_plus_pending",
+      "max_daily_loss": 2000.0,
+      "max_daily_trades": 20,
+      "net_pnl": 0,
+      "pending_exposure": 24400.0,
+      "settled": 0,
+      "source": "trade_journal",
+      "strategy_settled": 0,
+      "strategy_wins": 0
+    },
+    {
+      "accepted": 0,
+      "date": "2026-09-30",
+      "demo_tests_in_strategy_stats": false,
+      "event": "broker_reconciled",
+      "gross_loss": 0,
+      "historical_unconfirmed_ftt_count": 38,
+      "loss_basis": "gross_loss_plus_pending",
+      "max_daily_loss": 2000.0,
+      "max_daily_trades": 20,
+      "net_pnl": 0,
+      "pending_exposure": 0,
+      "settled": 0,
+      "source": "trade_journal",
+      "strategy_settled": 0,
+      "strategy_wins": 0
+    }
+  ],
+  "closed_events": 10,
+  "unique_1m_snapshots": 6,
+  "duplicate_snapshot_pairs": 0,
+  "shared_buy_sell_snapshots": true,
+  "all_consecutive_30s_closes": true,
+  "passing_gates": 0,
+  "gates": [
+    {
+      "asset": "EUR/USD OTC",
+      "avg_prev_10_range": 0.00023299999999999433,
+      "candle_event": 1,
+      "close": 1.09027,
+      "closed_only": true,
+      "confirmation_range": 0.00034000000000000696,
+      "direction": "BUY",
+      "ema20": 1.090685932782288,
+      "ema20_3ago": 1.0907972420902123,
+      "ema21": 1.0908846841914328,
+      "ema50": 1.0909296862108349,
+      "ema50_3ago": 1.0910006448465643,
+      "ema9": 1.090668603981275,
+      "entry_close": 1.09033,
+      "entry_close_at": "2026-09-30T03:39:00+05:30",
+      "entry_closed_ts": 1790719680.0,
+      "entry_count": 70,
+      "entry_high": 1.09065,
+      "entry_low": 1.09031,
+      "entry_open_at": "2026-09-30T03:38:00+05:30",
+      "entry_required": 21,
+      "entry_structure": "LH+LL",
+      "entry_swing_highs": [
+        {
+          "index": 43,
+          "price": 1.09176,
+          "ts": 1790718120.0
+        },
+        {
+          "index": 63,
+          "price": 1.09133,
+          "ts": 1790719320.0
+        }
+      ],
+      "entry_swing_lows": [
+        {
+          "index": 59,
+          "price": 1.09087,
+          "ts": 1790719080.0
+        },
+        {
+          "index": 66,
+          "price": 1.09046,
+          "ts": 1790719500.0
+        }
+      ],
+      "entry_ts": 1790719680.0,
+      "failed_rules": [
+        "30s_close_vs_ema20",
+        "30s_ema20_vs_ema50",
+        "30s_ema_slope_3_candles",
+        "1m_ema9_vs_ema21",
+        "1m_close_vs_ema21",
+        "1m_pullback_close_vs_ema21",
+        "1m_pullback_swing_progression",
+        "1m_pullback_vs_prior_swing",
+        "1m_close_breaks_swing",
+        "1m_confirmation_close_vs_ema9",
+        "1m_close_breaks_previous_candle",
+        "1m_rsi14_band",
+        "1m_rsi14_direction",
+        "30s_obstacle_clearance"
+      ],
+      "live_price": 1.09027,
+      "nearest_resistance": 1.09068,
+      "nearest_support": null,
+      "passed": false,
+      "previous_high": 1.09068,
+      "previous_low": 1.09051,
+      "pullback_closes_ema21": [
+        {
+          "close": 1.09053,
+          "ema21": 1.091064283124677,
+          "ts": 1790719440.0
+        },
+        {
+          "close": 1.0905,
+          "ema21": 1.0910129846587973,
+          "ts": 1790719500.0
+        },
+        {
+          "close": 1.09052,
+          "ema21": 1.0909681678716339,
+          "ts": 1790719560.0
+        },
+        {
+          "close": 1.09066,
+          "ema21": 1.0909401526105762,
+          "ts": 1790719620.0
+        },
+        {
+          "close": 1.09033,
+          "ema21": 1.0908846841914328,
+          "ts": 1790719680.0
+        }
+      ],
+      "reason": "30s_close_vs_ema20",
+      "resistance_distance": 0.0003500000000000725,
+      "rsi": 34.261814063839665,
+      "rsi_dir": "falling",
+      "rsi_previous": 40.48465327708416,
+      "source": "broker_native_ws",
+      "status": "fail",
+      "structure": "LH+LL",
+      "support_distance": null,
+      "trend_close_at": "2026-09-30T03:39:30+05:30",
+      "trend_closed_ts": 1790719740.0,
+      "trend_count": 180,
+      "trend_open_at": "2026-09-30T03:39:00+05:30",
+      "trend_required": 53,
+      "trend_structure_required": false,
+      "trend_swing_highs": [
+        {
+          "index": 172,
+          "price": 1.09071,
+          "ts": 1790719530.0
+        },
+        {
+          "index": 176,
+          "price": 1.09068,
+          "ts": 1790719650.0
+        }
+      ],
+      "trend_swing_lows": [
+        {
+          "index": 158,
+          "price": 1.09087,
+          "ts": 1790719110.0
+        },
+        {
+          "index": 171,
+          "price": 1.09046,
+          "ts": 1790719500.0
+        }
+      ],
+      "trend_ts": 1790719740.0
+    },
+    {
+      "asset": "EUR/USD OTC",
+      "avg_prev_10_range": 0.00023299999999999433,
+      "candle_event": 1,
+      "close": 1.09027,
+      "closed_only": true,
+      "confirmation_range": 0.00034000000000000696,
+      "direction": "SELL",
+      "ema20": 1.090685932782288,
+      "ema20_3ago": 1.0907972420902123,
+      "ema21": 1.0908846841914328,
+      "ema50": 1.0909296862108349,
+      "ema50_3ago": 1.0910006448465643,
+      "ema9": 1.090668603981275,
+      "entry_close": 1.09033,
+      "entry_close_at": "2026-09-30T03:39:00+05:30",
+      "entry_closed_ts": 1790719680.0,
+      "entry_count": 70,
+      "entry_high": 1.09065,
+      "entry_low": 1.09031,
+      "entry_open_at": "2026-09-30T03:38:00+05:30",
+      "entry_required": 21,
+      "entry_structure": "LH+LL",
+      "entry_swing_highs": [
+        {
+          "index": 43,
+          "price": 1.09176,
+          "ts": 1790718120.0
+        },
+        {
+          "index": 63,
+          "price": 1.09133,
+          "ts": 1790719320.0
+        }
+      ],
+      "entry_swing_lows": [
+        {
+          "index": 59,
+          "price": 1.09087,
+          "ts": 1790719080.0
+        },
+        {
+          "index": 66,
+          "price": 1.09046,
+          "ts": 1790719500.0
+        }
+      ],
+      "entry_ts": 1790719680.0,
+      "failed_rules": [
+        "1m_rsi14_band"
+      ],
+      "live_price": 1.09027,
+      "nearest_resistance": 1.09068,
+      "nearest_support": null,
+      "passed": false,
+      "previous_high": 1.09068,
+      "previous_low": 1.09051,
+      "pullback_closes_ema21": [
+        {
+          "close": 1.09053,
+          "ema21": 1.091064283124677,
+          "ts": 1790719440.0
+        },
+        {
+          "close": 1.0905,
+          "ema21": 1.0910129846587973,
+          "ts": 1790719500.0
+        },
+        {
+          "close": 1.09052,
+          "ema21": 1.0909681678716339,
+          "ts": 1790719560.0
+        },
+        {
+          "close": 1.09066,
+          "ema21": 1.0909401526105762,
+          "ts": 1790719620.0
+        },
+        {
+          "close": 1.09033,
+          "ema21": 1.0908846841914328,
+          "ts": 1790719680.0
+        }
+      ],
+      "reason": "1m_rsi14_band",
+      "resistance_distance": 0.0003500000000000725,
+      "rsi": 34.261814063839665,
+      "rsi_dir": "falling",
+      "rsi_previous": 40.48465327708416,
+      "source": "broker_native_ws",
+      "status": "fail",
+      "structure": "LH+LL",
+      "support_distance": null,
+      "trend_close_at": "2026-09-30T03:39:30+05:30",
+      "trend_closed_ts": 1790719740.0,
+      "trend_count": 180,
+      "trend_open_at": "2026-09-30T03:39:00+05:30",
+      "trend_required": 53,
+      "trend_structure_required": false,
+      "trend_swing_highs": [
+        {
+          "index": 172,
+          "price": 1.09071,
+          "ts": 1790719530.0
+        },
+        {
+          "index": 176,
+          "price": 1.09068,
+          "ts": 1790719650.0
+        }
+      ],
+      "trend_swing_lows": [
+        {
+          "index": 158,
+          "price": 1.09087,
+          "ts": 1790719110.0
+        },
+        {
+          "index": 171,
+          "price": 1.09046,
+          "ts": 1790719500.0
+        }
+      ],
+      "trend_ts": 1790719740.0
+    },
+    {
+      "asset": "EUR/USD OTC",
+      "avg_prev_10_range": 0.00023100000000000342,
+      "candle_event": 2,
+      "close": 1.09027,
+      "closed_only": true,
+      "confirmation_range": 0.0002500000000000835,
+      "direction": "BUY",
+      "ema20": 1.0906463201356051,
+      "ema20_3ago": 1.0907717904615601,
+      "ema21": 1.0908288291349604,
+      "ema50": 1.0909037788698885,
+      "ema50_3ago": 1.0909821461369802,
+      "ema9": 1.0905888831883108,
+      "entry_close": 1.09027,
+      "entry_close_at": "2026-09-30T03:40:00+05:30",
+      "entry_closed_ts": 1790719740.0,
+      "entry_count": 70,
+      "entry_high": 1.09041,
+      "entry_low": 1.09016,
+      "entry_open_at": "2026-09-30T03:39:00+05:30",
+      "entry_required": 21,
+      "entry_structure": "LH+LL",
+      "entry_swing_highs": [
+        {
+          "index": 42,
+          "price": 1.09176,
+          "ts": 1790718120.0
+        },
+        {
+          "index": 62,
+          "price": 1.09133,
+          "ts": 1790719320.0
+        }
+      ],
+      "entry_swing_lows": [
+        {
+          "index": 58,
+          "price": 1.09087,
+          "ts": 1790719080.0
+        },
+        {
+          "index": 65,
+          "price": 1.09046,
+          "ts": 1790719500.0
+        }
+      ],
+      "entry_ts": 1790719740.0,
+      "failed_rules": [
+        "30s_close_vs_ema20",
+        "30s_ema20_vs_ema50",
+        "30s_ema_slope_3_candles",
+        "1m_ema9_vs_ema21",
+        "1m_close_vs_ema21",
+        "1m_pullback_close_vs_ema21",
+        "1m_pullback_swing_progression",
+        "1m_pullback_vs_prior_swing",
+        "1m_close_breaks_swing",
+        "1m_confirmation_close_vs_ema9",
+        "1m_close_breaks_previous_candle",
+        "1m_rsi14_band",
+        "1m_rsi14_direction"
+      ],
+      "live_price": 1.09029,
+      "nearest_resistance": 1.09068,
+      "nearest_support": null,
+      "passed": false,
+      "previous_high": 1.09065,
+      "previous_low": 1.09031,
+      "pullback_closes_ema21": [
+        {
+          "close": 1.0905,
+          "ema21": 1.091013021736496,
+          "ts": 1790719500.0
+        },
+        {
+          "close": 1.09052,
+          "ema21": 1.0909682015786326,
+          "ts": 1790719560.0
+        },
+        {
+          "close": 1.09066,
+          "ema21": 1.0909401832533023,
+          "ts": 1790719620.0
+        },
+        {
+          "close": 1.09033,
+          "ema21": 1.0908847120484566,
+          "ts": 1790719680.0
+        },
+        {
+          "close": 1.09027,
+          "ema21": 1.0908288291349604,
+          "ts": 1790719740.0
+        }
+      ],
+      "reason": "30s_close_vs_ema20",
+      "resistance_distance": 0.00041000000000002146,
+      "rsi": 33.25278263328141,
+      "rsi_dir": "falling",
+      "rsi_previous": 34.252550795254166,
+      "source": "broker_native_ws",
+      "status": "fail",
+      "structure": "LH+LL",
+      "support_distance": null,
+      "trend_close_at": "2026-09-30T03:40:00+05:30",
+      "trend_closed_ts": 1790719770.0,
+      "trend_count": 180,
+      "trend_open_at": "2026-09-30T03:39:30+05:30",
+      "trend_required": 53,
+      "trend_structure_required": false,
+      "trend_swing_highs": [
+        {
+          "index": 171,
+          "price": 1.09071,
+          "ts": 1790719530.0
+        },
+        {
+          "index": 175,
+          "price": 1.09068,
+          "ts": 1790719650.0
+        }
+      ],
+      "trend_swing_lows": [
+        {
+          "index": 157,
+          "price": 1.09087,
+          "ts": 1790719110.0
+        },
+        {
+          "index": 170,
+          "price": 1.09046,
+          "ts": 1790719500.0
+        }
+      ],
+      "trend_ts": 1790719770.0
+    },
+    {
+      "asset": "EUR/USD OTC",
+      "avg_prev_10_range": 0.00023100000000000342,
+      "candle_event": 2,
+      "close": 1.09027,
+      "closed_only": true,
+      "confirmation_range": 0.0002500000000000835,
+      "direction": "SELL",
+      "ema20": 1.0906463201356051,
+      "ema20_3ago": 1.0907717904615601,
+      "ema21": 1.0908288291349604,
+      "ema50": 1.0909037788698885,
+      "ema50_3ago": 1.0909821461369802,
+      "ema9": 1.0905888831883108,
+      "entry_close": 1.09027,
+      "entry_close_at": "2026-09-30T03:40:00+05:30",
+      "entry_closed_ts": 1790719740.0,
+      "entry_count": 70,
+      "entry_high": 1.09041,
+      "entry_low": 1.09016,
+      "entry_open_at": "2026-09-30T03:39:00+05:30",
+      "entry_required": 21,
+      "entry_structure": "LH+LL",
+      "entry_swing_highs": [
+        {
+          "index": 42,
+          "price": 1.09176,
+          "ts": 1790718120.0
+        },
+        {
+          "index": 62,
+          "price": 1.09133,
+          "ts": 1790719320.0
+        }
+      ],
+      "entry_swing_lows": [
+        {
+          "index": 58,
+          "price": 1.09087,
+          "ts": 1790719080.0
+        },
+        {
+          "index": 65,
+          "price": 1.09046,
+          "ts": 1790719500.0
+        }
+      ],
+      "entry_ts": 1790719740.0,
+      "failed_rules": [
+        "1m_rsi14_band"
+      ],
+      "live_price": 1.09029,
+      "nearest_resistance": 1.09068,
+      "nearest_support": null,
+      "passed": false,
+      "previous_high": 1.09065,
+      "previous_low": 1.09031,
+      "pullback_closes_ema21": [
+        {
+          "close": 1.0905,
+          "ema21": 1.091013021736496,
+          "ts": 1790719500.0
+        },
+        {
+          "close": 1.09052,
+          "ema21": 1.0909682015786326,
+          "ts": 1790719560.0
+        },
+        {
+          "close": 1.09066,
+          "ema21": 1.0909401832533023,
+          "ts": 1790719620.0
+        },
+        {
+          "close": 1.09033,
+          "ema21": 1.0908847120484566,
+          "ts": 1790719680.0
+        },
+        {
+          "close": 1.09027,
+          "ema21": 1.0908288291349604,
+          "ts": 1790719740.0
+        }
+      ],
+      "reason": "1m_rsi14_band",
+      "resistance_distance": 0.00041000000000002146,
+      "rsi": 33.25278263328141,
+      "rsi_dir": "falling",
+      "rsi_previous": 34.252550795254166,
+      "source": "broker_native_ws",
+      "status": "fail",
+      "structure": "LH+LL",
+      "support_distance": null,
+      "trend_close_at": "2026-09-30T03:40:00+05:30",
+      "trend_closed_ts": 1790719770.0,
+      "trend_count": 180,
+      "trend_open_at": "2026-09-30T03:39:30+05:30",
+      "trend_required": 53,
+      "trend_structure_required": false,
+      "trend_swing_highs": [
+        {
+          "index": 171,
+          "price": 1.09071,
+          "ts": 1790719530.0
+        },
+        {
+          "index": 175,
+          "price": 1.09068,
+          "ts": 1790719650.0
+        }
+      ],
+      "trend_swing_lows": [
+        {
+          "index": 157,
+          "price": 1.09087,
+          "ts": 1790719110.0
+        },
+        {
+          "index": 170,
+          "price": 1.09046,
+          "ts": 1790719500.0
+        }
+      ],
+      "trend_ts": 1790719770.0
+    },
+    {
+      "asset": "EUR/USD OTC",
+      "avg_prev_10_range": 0.00023100000000000342,
+      "candle_event": 3,
+      "close": 1.09036,
+      "closed_only": true,
+      "confirmation_range": 0.0002500000000000835,
+      "direction": "BUY",
+      "ema20": 1.0906190515517122,
+      "ema20_3ago": 1.0907297151801145,
+      "ema21": 1.0908288291349604,
+      "ema50": 1.090882476584402,
+      "ema50_3ago": 1.090956597008028,
+      "ema9": 1.0905888831883108,
+      "entry_close": 1.09027,
+      "entry_close_at": "2026-09-30T03:40:00+05:30",
+      "entry_closed_ts": 1790719740.0,
+      "entry_count": 70,
+      "entry_high": 1.09041,
+      "entry_low": 1.09016,
+      "entry_open_at": "2026-09-30T03:39:00+05:30",
+      "entry_required": 21,
+      "entry_structure": "LH+LL",
+      "entry_swing_highs": [
+        {
+          "index": 42,
+          "price": 1.09176,
+          "ts": 1790718120.0
+        },
+        {
+          "index": 62,
+          "price": 1.09133,
+          "ts": 1790719320.0
+        }
+      ],
+      "entry_swing_lows": [
+        {
+          "index": 58,
+          "price": 1.09087,
+          "ts": 1790719080.0
+        },
+        {
+          "index": 65,
+          "price": 1.09046,
+          "ts": 1790719500.0
+        }
+      ],
+      "entry_ts": 1790719740.0,
+      "failed_rules": [
+        "30s_close_vs_ema20",
+        "30s_ema20_vs_ema50",
+        "30s_ema_slope_3_candles",
+        "1m_ema9_vs_ema21",
+        "1m_close_vs_ema21",
+        "1m_pullback_close_vs_ema21",
+        "1m_pullback_swing_progression",
+        "1m_pullback_vs_prior_swing",
+        "1m_close_breaks_swing",
+        "1m_confirmation_close_vs_ema9",
+        "1m_close_breaks_previous_candle",
+        "1m_rsi14_band",
+        "1m_rsi14_direction"
+      ],
+      "live_price": 1.09036,
+      "nearest_resistance": 1.09068,
+      "nearest_support": null,
+      "passed": false,
+      "previous_high": 1.09065,
+      "previous_low": 1.09031,
+      "pullback_closes_ema21": [
+        {
+          "close": 1.0905,
+          "ema21": 1.091013021736496,
+          "ts": 1790719500.0
+        },
+        {
+          "close": 1.09052,
+          "ema21": 1.0909682015786326,
+          "ts": 1790719560.0
+        },
+        {
+          "close": 1.09066,
+          "ema21": 1.0909401832533023,
+          "ts": 1790719620.0
+        },
+        {
+          "close": 1.09033,
+          "ema21": 1.0908847120484566,
+          "ts": 1790719680.0
+        },
+        {
+          "close": 1.09027,
+          "ema21": 1.0908288291349604,
+          "ts": 1790719740.0
+        }
+      ],
+      "reason": "30s_close_vs_ema20",
+      "resistance_distance": 0.00041000000000002146,
+      "rsi": 33.25278263328141,
+      "rsi_dir": "falling",
+      "rsi_previous": 34.252550795254166,
+      "source": "broker_native_ws",
+      "status": "fail",
+      "structure": "LH+LL",
+      "support_distance": null,
+      "trend_close_at": "2026-09-30T03:40:30+05:30",
+      "trend_closed_ts": 1790719800.0,
+      "trend_count": 180,
+      "trend_open_at": "2026-09-30T03:40:00+05:30",
+      "trend_required": 53,
+      "trend_structure_required": false,
+      "trend_swing_highs": [
+        {
+          "index": 170,
+          "price": 1.09071,
+          "ts": 1790719530.0
+        },
+        {
+          "index": 174,
+          "price": 1.09068,
+          "ts": 1790719650.0
+        }
+      ],
+      "trend_swing_lows": [
+        {
+          "index": 156,
+          "price": 1.09087,
+          "ts": 1790719110.0
+        },
+        {
+          "index": 169,
+          "price": 1.09046,
+          "ts": 1790719500.0
+        }
+      ],
+      "trend_ts": 1790719800.0
+    },
+    {
+      "asset": "EUR/USD OTC",
+      "avg_prev_10_range": 0.00023100000000000342,
+      "candle_event": 3,
+      "close": 1.09036,
+      "closed_only": true,
+      "confirmation_range": 0.0002500000000000835,
+      "direction": "SELL",
+      "ema20": 1.0906190515517122,
+      "ema20_3ago": 1.0907297151801145,
+      "ema21": 1.0908288291349604,
+      "ema50": 1.090882476584402,
+      "ema50_3ago": 1.090956597008028,
+      "ema9": 1.0905888831883108,
+      "entry_close": 1.09027,
+      "entry_close_at": "2026-09-30T03:40:00+05:30",
+      "entry_closed_ts": 1790719740.0,
+      "entry_count": 70,
+      "entry_high": 1.09041,
+      "entry_low": 1.09016,
+      "entry_open_at": "2026-09-30T03:39:00+05:30",
+      "entry_required": 21,
+      "entry_structure": "LH+LL",
+      "entry_swing_highs": [
+        {
+          "index": 42,
+          "price": 1.09176,
+          "ts": 1790718120.0
+        },
+        {
+          "index": 62,
+          "price": 1.09133,
+          "ts": 1790719320.0
+        }
+      ],
+      "entry_swing_lows": [
+        {
+          "index": 58,
+          "price": 1.09087,
+          "ts": 1790719080.0
+        },
+        {
+          "index": 65,
+          "price": 1.09046,
+          "ts": 1790719500.0
+        }
+      ],
+      "entry_ts": 1790719740.0,
+      "failed_rules": [
+        "1m_rsi14_band"
+      ],
+      "live_price": 1.09036,
+      "nearest_resistance": 1.09068,
+      "nearest_support": null,
+      "passed": false,
+      "previous_high": 1.09065,
+      "previous_low": 1.09031,
+      "pullback_closes_ema21": [
+        {
+          "close": 1.0905,
+          "ema21": 1.091013021736496,
+          "ts": 1790719500.0
+        },
+        {
+          "close": 1.09052,
+          "ema21": 1.0909682015786326,
+          "ts": 1790719560.0
+        },
+        {
+          "close": 1.09066,
+          "ema21": 1.0909401832533023,
+          "ts": 1790719620.0
+        },
+        {
+          "close": 1.09033,
+          "ema21": 1.0908847120484566,
+          "ts": 1790719680.0
+        },
+        {
+          "close": 1.09027,
+          "ema21": 1.0908288291349604,
+          "ts": 1790719740.0
+        }
+      ],
+      "reason": "1m_rsi14_band",
+      "resistance_distance": 0.00041000000000002146,
+      "rsi": 33.25278263328141,
+      "rsi_dir": "falling",
+      "rsi_previous": 34.252550795254166,
+      "source": "broker_native_ws",
+      "status": "fail",
+      "structure": "LH+LL",
+      "support_distance": null,
+      "trend_close_at": "2026-09-30T03:40:30+05:30",
+      "trend_closed_ts": 1790719800.0,
+      "trend_count": 180,
+      "trend_open_at": "2026-09-30T03:40:00+05:30",
+      "trend_required": 53,
+      "trend_structure_required": false,
+      "trend_swing_highs": [
+        {
+          "index": 170,
+          "price": 1.09071,
+          "ts": 1790719530.0
+        },
+        {
+          "index": 174,
+          "price": 1.09068,
+          "ts": 1790719650.0
+        }
+      ],
+      "trend_swing_lows": [
+        {
+          "index": 156,
+          "price": 1.09087,
+          "ts": 1790719110.0
+        },
+        {
+          "index": 169,
+          "price": 1.09046,
+          "ts": 1790719500.0
+        }
+      ],
+      "trend_ts": 1790719800.0
+    },
+    {
+      "asset": "EUR/USD OTC",
+      "avg_prev_10_range": 0.00023300000000001653,
+      "candle_event": 4,
+      "close": 1.09049,
+      "closed_only": true,
+      "confirmation_range": 0.000280000000000058,
+      "direction": "BUY",
+      "ema20": 1.0906067609250394,
+      "ema20_3ago": 1.0906859327783625,
+      "ema21": 1.090798216420583,
+      "ema50": 1.0908669510893316,
+      "ema50_3ago": 1.0909295202589986,
+      "ema9": 1.0905691065753316,
+      "entry_close": 1.09049,
+      "entry_close_at": "2026-09-30T03:41:00+05:30",
+      "entry_closed_ts": 1790719800.0,
+      "entry_count": 70,
+      "entry_high": 1.09051,
+      "entry_low": 1.09023,
+      "entry_open_at": "2026-09-30T03:40:00+05:30",
+      "entry_required": 21,
+      "entry_structure": "LH+LL",
+      "entry_swing_highs": [
+        {
+          "index": 41,
+          "price": 1.09176,
+          "ts": 1790718120.0
+        },
+        {
+          "index": 61,
+          "price": 1.09133,
+          "ts": 1790719320.0
+        }
+      ],
+      "entry_swing_lows": [
+        {
+          "index": 57,
+          "price": 1.09087,
+          "ts": 1790719080.0
+        },
+        {
+          "index": 64,
+          "price": 1.09046,
+          "ts": 1790719500.0
+        }
+      ],
+      "entry_ts": 1790719800.0,
+      "failed_rules": [
+        "30s_close_vs_ema20",
+        "30s_ema20_vs_ema50",
+        "30s_ema_slope_3_candles",
+        "1m_ema9_vs_ema21",
+        "1m_close_vs_ema21",
+        "1m_pullback_close_vs_ema21",
+        "1m_pullback_swing_progression",
+        "1m_pullback_vs_prior_swing",
+        "1m_close_breaks_swing",
+        "1m_confirmation_close_vs_ema9",
+        "1m_rsi14_band",
+        "30s_obstacle_clearance"
+      ],
+      "live_price": 1.09049,
+      "nearest_resistance": 1.09068,
+      "nearest_support": 1.09046,
+      "passed": false,
+      "previous_high": 1.09041,
+      "previous_low": 1.09016,
+      "pullback_closes_ema21": [
+        {
+          "close": 1.09052,
+          "ema21": 1.090968479661376,
+          "ts": 1790719560.0
+        },
+        {
+          "close": 1.09066,
+          "ema21": 1.0909404360557962,
+          "ts": 1790719620.0
+        },
+        {
+          "close": 1.09033,
+          "ema21": 1.0908849418689055,
+          "ts": 1790719680.0
+        },
+        {
+          "close": 1.09027,
+          "ema21": 1.0908290380626413,
+          "ts": 1790719740.0
+        },
+        {
+          "close": 1.09049,
+          "ema21": 1.090798216420583,
+          "ts": 1790719800.0
+        }
+      ],
+      "reason": "30s_close_vs_ema20",
+      "resistance_distance": 0.0001900000000001345,
+      "rsi": 40.07431409791002,
+      "rsi_dir": "rising",
+      "rsi_previous": 33.16700932392921,
+      "source": "broker_native_ws",
+      "status": "fail",
+      "structure": "LH+LL",
+      "support_distance": 2.999999999997449e-05,
+      "trend_close_at": "2026-09-30T03:41:00+05:30",
+      "trend_closed_ts": 1790719830.0,
+      "trend_count": 180,
+      "trend_open_at": "2026-09-30T03:40:30+05:30",
+      "trend_required": 53,
+      "trend_structure_required": false,
+      "trend_swing_highs": [
+        {
+          "index": 169,
+          "price": 1.09071,
+          "ts": 1790719530.0
+        },
+        {
+          "index": 173,
+          "price": 1.09068,
+          "ts": 1790719650.0
+        }
+      ],
+      "trend_swing_lows": [
+        {
+          "index": 168,
+          "price": 1.09046,
+          "ts": 1790719500.0
+        },
+        {
+          "index": 177,
+          "price": 1.09016,
+          "ts": 1790719770.0
+        }
+      ],
+      "trend_ts": 1790719830.0
+    },
+    {
+      "asset": "EUR/USD OTC",
+      "avg_prev_10_range": 0.00023300000000001653,
+      "candle_event": 4,
+      "close": 1.09049,
+      "closed_only": true,
+      "confirmation_range": 0.000280000000000058,
+      "direction": "SELL",
+      "ema20": 1.0906067609250394,
+      "ema20_3ago": 1.0906859327783625,
+      "ema21": 1.090798216420583,
+      "ema50": 1.0908669510893316,
+      "ema50_3ago": 1.0909295202589986,
+      "ema9": 1.0905691065753316,
+      "entry_close": 1.09049,
+      "entry_close_at": "2026-09-30T03:41:00+05:30",
+      "entry_closed_ts": 1790719800.0,
+      "entry_count": 70,
+      "entry_high": 1.09051,
+      "entry_low": 1.09023,
+      "entry_open_at": "2026-09-30T03:40:00+05:30",
+      "entry_required": 21,
+      "entry_structure": "LH+LL",
+      "entry_swing_highs": [
+        {
+          "index": 41,
+          "price": 1.09176,
+          "ts": 1790718120.0
+        },
+        {
+          "index": 61,
+          "price": 1.09133,
+          "ts": 1790719320.0
+        }
+      ],
+      "entry_swing_lows": [
+        {
+          "index": 57,
+          "price": 1.09087,
+          "ts": 1790719080.0
+        },
+        {
+          "index": 64,
+          "price": 1.09046,
+          "ts": 1790719500.0
+        }
+      ],
+      "entry_ts": 1790719800.0,
+      "failed_rules": [
+        "1m_close_breaks_swing",
+        "1m_close_breaks_previous_candle",
+        "1m_rsi14_direction",
+        "30s_obstacle_clearance"
+      ],
+      "live_price": 1.09049,
+      "nearest_resistance": 1.09068,
+      "nearest_support": 1.09046,
+      "passed": false,
+      "previous_high": 1.09041,
+      "previous_low": 1.09016,
+      "pullback_closes_ema21": [
+        {
+          "close": 1.09052,
+          "ema21": 1.090968479661376,
+          "ts": 1790719560.0
+        },
+        {
+          "close": 1.09066,
+          "ema21": 1.0909404360557962,
+          "ts": 1790719620.0
+        },
+        {
+          "close": 1.09033,
+          "ema21": 1.0908849418689055,
+          "ts": 1790719680.0
+        },
+        {
+          "close": 1.09027,
+          "ema21": 1.0908290380626413,
+          "ts": 1790719740.0
+        },
+        {
+          "close": 1.09049,
+          "ema21": 1.090798216420583,
+          "ts": 1790719800.0
+        }
+      ],
+      "reason": "1m_close_breaks_swing",
+      "resistance_distance": 0.0001900000000001345,
+      "rsi": 40.07431409791002,
+      "rsi_dir": "rising",
+      "rsi_previous": 33.16700932392921,
+      "source": "broker_native_ws",
+      "status": "fail",
+      "structure": "LH+LL",
+      "support_distance": 2.999999999997449e-05,
+      "trend_close_at": "2026-09-30T03:41:00+05:30",
+      "trend_closed_ts": 1790719830.0,
+      "trend_count": 180,
+      "trend_open_at": "2026-09-30T03:40:30+05:30",
+      "trend_required": 53,
+      "trend_structure_required": false,
+      "trend_swing_highs": [
+        {
+          "index": 169,
+          "price": 1.09071,
+          "ts": 1790719530.0
+        },
+        {
+          "index": 173,
+          "price": 1.09068,
+          "ts": 1790719650.0
+        }
+      ],
+      "trend_swing_lows": [
+        {
+          "index": 168,
+          "price": 1.09046,
+          "ts": 1790719500.0
+        },
+        {
+          "index": 177,
+          "price": 1.09016,
+          "ts": 1790719770.0
+        }
+      ],
+      "trend_ts": 1790719830.0
+    },
+    {
+      "asset": "EUR/USD OTC",
+      "avg_prev_10_range": 0.00023300000000001653,
+      "candle_event": 5,
+      "close": 1.0904,
+      "closed_only": true,
+      "confirmation_range": 0.000280000000000058,
+      "direction": "BUY",
+      "ema20": 1.0905870694076183,
+      "ema20_3ago": 1.0906463201317909,
+      "ema21": 1.090798216420583,
+      "ema50": 1.0908486019884438,
+      "ema50_3ago": 1.090903614670495,
+      "ema9": 1.0905691065753316,
+      "entry_close": 1.09049,
+      "entry_close_at": "2026-09-30T03:41:00+05:30",
+      "entry_closed_ts": 1790719800.0,
+      "entry_count": 70,
+      "entry_high": 1.09051,
+      "entry_low": 1.09023,
+      "entry_open_at": "2026-09-30T03:40:00+05:30",
+      "entry_required": 21,
+      "entry_structure": "LH+LL",
+      "entry_swing_highs": [
+        {
+          "index": 41,
+          "price": 1.09176,
+          "ts": 1790718120.0
+        },
+        {
+          "index": 61,
+          "price": 1.09133,
+          "ts": 1790719320.0
+        }
+      ],
+      "entry_swing_lows": [
+        {
+          "index": 57,
+          "price": 1.09087,
+          "ts": 1790719080.0
+        },
+        {
+          "index": 64,
+          "price": 1.09046,
+          "ts": 1790719500.0
+        }
+      ],
+      "entry_ts": 1790719800.0,
+      "failed_rules": [
+        "30s_close_vs_ema20",
+        "30s_ema20_vs_ema50",
+        "30s_ema_slope_3_candles",
+        "1m_ema9_vs_ema21",
+        "1m_close_vs_ema21",
+        "1m_pullback_close_vs_ema21",
+        "1m_pullback_swing_progression",
+        "1m_pullback_vs_prior_swing",
+        "1m_close_breaks_swing",
+        "1m_confirmation_close_vs_ema9",
+        "1m_rsi14_band",
+        "30s_obstacle_clearance"
+      ],
+      "live_price": 1.09044,
+      "nearest_resistance": 1.09068,
+      "nearest_support": 1.09046,
+      "passed": false,
+      "previous_high": 1.09041,
+      "previous_low": 1.09016,
+      "pullback_closes_ema21": [
+        {
+          "close": 1.09052,
+          "ema21": 1.090968479661376,
+          "ts": 1790719560.0
+        },
+        {
+          "close": 1.09066,
+          "ema21": 1.0909404360557962,
+          "ts": 1790719620.0
+        },
+        {
+          "close": 1.09033,
+          "ema21": 1.0908849418689055,
+          "ts": 1790719680.0
+        },
+        {
+          "close": 1.09027,
+          "ema21": 1.0908290380626413,
+          "ts": 1790719740.0
+        },
+        {
+          "close": 1.09049,
+          "ema21": 1.090798216420583,
+          "ts": 1790719800.0
+        }
+      ],
+      "reason": "30s_close_vs_ema20",
+      "resistance_distance": 0.0001900000000001345,
+      "rsi": 40.07431409791002,
+      "rsi_dir": "rising",
+      "rsi_previous": 33.16700932392921,
+      "source": "broker_native_ws",
+      "status": "fail",
+      "structure": "LH+LL",
+      "support_distance": 2.999999999997449e-05,
+      "trend_close_at": "2026-09-30T03:41:30+05:30",
+      "trend_closed_ts": 1790719860.0,
+      "trend_count": 180,
+      "trend_open_at": "2026-09-30T03:41:00+05:30",
+      "trend_required": 53,
+      "trend_structure_required": false,
+      "trend_swing_highs": [
+        {
+          "index": 168,
+          "price": 1.09071,
+          "ts": 1790719530.0
+        },
+        {
+          "index": 172,
+          "price": 1.09068,
+          "ts": 1790719650.0
+        }
+      ],
+      "trend_swing_lows": [
+        {
+          "index": 167,
+          "price": 1.09046,
+          "ts": 1790719500.0
+        },
+        {
+          "index": 176,
+          "price": 1.09016,
+          "ts": 1790719770.0
+        }
+      ],
+      "trend_ts": 1790719860.0
+    },
+    {
+      "asset": "EUR/USD OTC",
+      "avg_prev_10_range": 0.00023300000000001653,
+      "candle_event": 5,
+      "close": 1.0904,
+      "closed_only": true,
+      "confirmation_range": 0.000280000000000058,
+      "direction": "SELL",
+      "ema20": 1.0905870694076183,
+      "ema20_3ago": 1.0906463201317909,
+      "ema21": 1.090798216420583,
+      "ema50": 1.0908486019884438,
+      "ema50_3ago": 1.090903614670495,
+      "ema9": 1.0905691065753316,
+      "entry_close": 1.09049,
+      "entry_close_at": "2026-09-30T03:41:00+05:30",
+      "entry_closed_ts": 1790719800.0,
+      "entry_count": 70,
+      "entry_high": 1.09051,
+      "entry_low": 1.09023,
+      "entry_open_at": "2026-09-30T03:40:00+05:30",
+      "entry_required": 21,
+      "entry_structure": "LH+LL",
+      "entry_swing_highs": [
+        {
+          "index": 41,
+          "price": 1.09176,
+          "ts": 1790718120.0
+        },
+        {
+          "index": 61,
+          "price": 1.09133,
+          "ts": 1790719320.0
+        }
+      ],
+      "entry_swing_lows": [
+        {
+          "index": 57,
+          "price": 1.09087,
+          "ts": 1790719080.0
+        },
+        {
+          "index": 64,
+          "price": 1.09046,
+          "ts": 1790719500.0
+        }
+      ],
+      "entry_ts": 1790719800.0,
+      "failed_rules": [
+        "1m_close_breaks_swing",
+        "1m_close_breaks_previous_candle",
+        "1m_rsi14_direction",
+        "30s_obstacle_clearance"
+      ],
+      "live_price": 1.09044,
+      "nearest_resistance": 1.09068,
+      "nearest_support": 1.09046,
+      "passed": false,
+      "previous_high": 1.09041,
+      "previous_low": 1.09016,
+      "pullback_closes_ema21": [
+        {
+          "close": 1.09052,
+          "ema21": 1.090968479661376,
+          "ts": 1790719560.0
+        },
+        {
+          "close": 1.09066,
+          "ema21": 1.0909404360557962,
+          "ts": 1790719620.0
+        },
+        {
+          "close": 1.09033,
+          "ema21": 1.0908849418689055,
+          "ts": 1790719680.0
+        },
+        {
+          "close": 1.09027,
+          "ema21": 1.0908290380626413,
+          "ts": 1790719740.0
+        },
+        {
+          "close": 1.09049,
+          "ema21": 1.090798216420583,
+          "ts": 1790719800.0
+        }
+      ],
+      "reason": "1m_close_breaks_swing",
+      "resistance_distance": 0.0001900000000001345,
+      "rsi": 40.07431409791002,
+      "rsi_dir": "rising",
+      "rsi_previous": 33.16700932392921,
+      "source": "broker_native_ws",
+      "status": "fail",
+      "structure": "LH+LL",
+      "support_distance": 2.999999999997449e-05,
+      "trend_close_at": "2026-09-30T03:41:30+05:30",
+      "trend_closed_ts": 1790719860.0,
+      "trend_count": 180,
+      "trend_open_at": "2026-09-30T03:41:00+05:30",
+      "trend_required": 53,
+      "trend_structure_required": false,
+      "trend_swing_highs": [
+        {
+          "index": 168,
+          "price": 1.09071,
+          "ts": 1790719530.0
+        },
+        {
+          "index": 172,
+          "price": 1.09068,
+          "ts": 1790719650.0
+        }
+      ],
+      "trend_swing_lows": [
+        {
+          "index": 167,
+          "price": 1.09046,
+          "ts": 1790719500.0
+        },
+        {
+          "index": 176,
+          "price": 1.09016,
+          "ts": 1790719770.0
+        }
+      ],
+      "trend_ts": 1790719860.0
+    },
+    {
+      "asset": "EUR/USD OTC",
+      "avg_prev_10_range": 0.000248000000000026,
+      "candle_event": 6,
+      "close": 1.09015,
+      "closed_only": true,
+      "confirmation_range": 0.00036999999999998145,
+      "direction": "BUY",
+      "ema20": 1.0905454437511002,
+      "ema20_3ago": 1.0906190515496341,
+      "ema21": 1.0907393762910613,
+      "ema50": 1.0908212729602675,
+      "ema50_3ago": 1.0908823721362055,
+      "ema9": 1.0904852852717835,
+      "entry_close": 1.09015,
+      "entry_close_at": "2026-09-30T03:42:00+05:30",
+      "entry_closed_ts": 1790719860.0,
+      "entry_count": 70,
+      "entry_high": 1.09052,
+      "entry_low": 1.09015,
+      "entry_open_at": "2026-09-30T03:41:00+05:30",
+      "entry_required": 21,
+      "entry_structure": "LH+LL",
+      "entry_swing_highs": [
+        {
+          "index": 40,
+          "price": 1.09176,
+          "ts": 1790718120.0
+        },
+        {
+          "index": 60,
+          "price": 1.09133,
+          "ts": 1790719320.0
+        }
+      ],
+      "entry_swing_lows": [
+        {
+          "index": 56,
+          "price": 1.09087,
+          "ts": 1790719080.0
+        },
+        {
+          "index": 63,
+          "price": 1.09046,
+          "ts": 1790719500.0
+        }
+      ],
+      "entry_ts": 1790719860.0,
+      "failed_rules": [
+        "30s_close_vs_ema20",
+        "30s_ema20_vs_ema50",
+        "30s_ema_slope_3_candles",
+        "1m_ema9_vs_ema21",
+        "1m_close_vs_ema21",
+        "1m_pullback_close_vs_ema21",
+        "1m_pullback_swing_progression",
+        "1m_pullback_vs_prior_swing",
+        "1m_close_breaks_swing",
+        "1m_confirmation_close_vs_ema9",
+        "1m_close_breaks_previous_candle",
+        "1m_rsi14_band",
+        "1m_rsi14_direction",
+        "30s_obstacle_clearance"
+      ],
+      "live_price": 1.09015,
+      "nearest_resistance": 1.09068,
+      "nearest_support": null,
+      "passed": false,
+      "previous_high": 1.09051,
+      "previous_low": 1.09023,
+      "pullback_closes_ema21": [
+        {
+          "close": 1.09066,
+          "ema21": 1.0909405658277431,
+          "ts": 1790719620.0
+        },
+        {
+          "close": 1.09033,
+          "ema21": 1.0908850598434028,
+          "ts": 1790719680.0
+        },
+        {
+          "close": 1.09027,
+          "ema21": 1.0908291453121843,
+          "ts": 1790719740.0
+        },
+        {
+          "close": 1.09049,
+          "ema21": 1.0907983139201676,
+          "ts": 1790719800.0
+        },
+        {
+          "close": 1.09015,
+          "ema21": 1.0907393762910613,
+          "ts": 1790719860.0
+        }
+      ],
+      "reason": "30s_close_vs_ema20",
+      "resistance_distance": 0.0005300000000001415,
+      "rsi": 34.151104179074295,
+      "rsi_dir": "falling",
+      "rsi_previous": 40.02154104744713,
+      "source": "broker_native_ws",
+      "status": "fail",
+      "structure": "LH+LL",
+      "support_distance": null,
+      "trend_close_at": "2026-09-30T03:42:00+05:30",
+      "trend_closed_ts": 1790719890.0,
+      "trend_count": 180,
+      "trend_open_at": "2026-09-30T03:41:30+05:30",
+      "trend_required": 53,
+      "trend_structure_required": false,
+      "trend_swing_highs": [
+        {
+          "index": 167,
+          "price": 1.09071,
+          "ts": 1790719530.0
+        },
+        {
+          "index": 171,
+          "price": 1.09068,
+          "ts": 1790719650.0
+        }
+      ],
+      "trend_swing_lows": [
+        {
+          "index": 166,
+          "price": 1.09046,
+          "ts": 1790719500.0
+        },
+        {
+          "index": 175,
+          "price": 1.09016,
+          "ts": 1790719770.0
+        }
+      ],
+      "trend_ts": 1790719890.0
+    },
+    {
+      "asset": "EUR/USD OTC",
+      "avg_prev_10_range": 0.000248000000000026,
+      "candle_event": 6,
+      "close": 1.09015,
+      "closed_only": true,
+      "confirmation_range": 0.00036999999999998145,
+      "direction": "SELL",
+      "ema20": 1.0905454437511002,
+      "ema20_3ago": 1.0906190515496341,
+      "ema21": 1.0907393762910613,
+      "ema50": 1.0908212729602675,
+      "ema50_3ago": 1.0908823721362055,
+      "ema9": 1.0904852852717835,
+      "entry_close": 1.09015,
+      "entry_close_at": "2026-09-30T03:42:00+05:30",
+      "entry_closed_ts": 1790719860.0,
+      "entry_count": 70,
+      "entry_high": 1.09052,
+      "entry_low": 1.09015,
+      "entry_open_at": "2026-09-30T03:41:00+05:30",
+      "entry_required": 21,
+      "entry_structure": "LH+LL",
+      "entry_swing_highs": [
+        {
+          "index": 40,
+          "price": 1.09176,
+          "ts": 1790718120.0
+        },
+        {
+          "index": 60,
+          "price": 1.09133,
+          "ts": 1790719320.0
+        }
+      ],
+      "entry_swing_lows": [
+        {
+          "index": 56,
+          "price": 1.09087,
+          "ts": 1790719080.0
+        },
+        {
+          "index": 63,
+          "price": 1.09046,
+          "ts": 1790719500.0
+        }
+      ],
+      "entry_ts": 1790719860.0,
+      "failed_rules": [
+        "1m_rsi14_band"
+      ],
+      "live_price": 1.09015,
+      "nearest_resistance": 1.09068,
+      "nearest_support": null,
+      "passed": false,
+      "previous_high": 1.09051,
+      "previous_low": 1.09023,
+      "pullback_closes_ema21": [
+        {
+          "close": 1.09066,
+          "ema21": 1.0909405658277431,
+          "ts": 1790719620.0
+        },
+        {
+          "close": 1.09033,
+          "ema21": 1.0908850598434028,
+          "ts": 1790719680.0
+        },
+        {
+          "close": 1.09027,
+          "ema21": 1.0908291453121843,
+          "ts": 1790719740.0
+        },
+        {
+          "close": 1.09049,
+          "ema21": 1.0907983139201676,
+          "ts": 1790719800.0
+        },
+        {
+          "close": 1.09015,
+          "ema21": 1.0907393762910613,
+          "ts": 1790719860.0
+        }
+      ],
+      "reason": "1m_rsi14_band",
+      "resistance_distance": 0.0005300000000001415,
+      "rsi": 34.151104179074295,
+      "rsi_dir": "falling",
+      "rsi_previous": 40.02154104744713,
+      "source": "broker_native_ws",
+      "status": "fail",
+      "structure": "LH+LL",
+      "support_distance": null,
+      "trend_close_at": "2026-09-30T03:42:00+05:30",
+      "trend_closed_ts": 1790719890.0,
+      "trend_count": 180,
+      "trend_open_at": "2026-09-30T03:41:30+05:30",
+      "trend_required": 53,
+      "trend_structure_required": false,
+      "trend_swing_highs": [
+        {
+          "index": 167,
+          "price": 1.09071,
+          "ts": 1790719530.0
+        },
+        {
+          "index": 171,
+          "price": 1.09068,
+          "ts": 1790719650.0
+        }
+      ],
+      "trend_swing_lows": [
+        {
+          "index": 166,
+          "price": 1.09046,
+          "ts": 1790719500.0
+        },
+        {
+          "index": 175,
+          "price": 1.09016,
+          "ts": 1790719770.0
+        }
+      ],
+      "trend_ts": 1790719890.0
+    },
+    {
+      "asset": "EUR/USD OTC",
+      "avg_prev_10_range": 0.000248000000000026,
+      "candle_event": 7,
+      "close": 1.09013,
+      "closed_only": true,
+      "confirmation_range": 0.00036999999999998145,
+      "direction": "BUY",
+      "ema20": 1.0905058776777667,
+      "ema20_3ago": 1.0906067609234287,
+      "ema21": 1.0907393762910613,
+      "ema50": 1.0907940747124167,
+      "ema50_3ago": 1.0908668840761653,
+      "ema9": 1.0904852852717835,
+      "entry_close": 1.09015,
+      "entry_close_at": "2026-09-30T03:42:00+05:30",
+      "entry_closed_ts": 1790719860.0,
+      "entry_count": 70,
+      "entry_high": 1.09052,
+      "entry_low": 1.09015,
+      "entry_open_at": "2026-09-30T03:41:00+05:30",
+      "entry_required": 21,
+      "entry_structure": "LH+LL",
+      "entry_swing_highs": [
+        {
+          "index": 40,
+          "price": 1.09176,
+          "ts": 1790718120.0
+        },
+        {
+          "index": 60,
+          "price": 1.09133,
+          "ts": 1790719320.0
+        }
+      ],
+      "entry_swing_lows": [
+        {
+          "index": 56,
+          "price": 1.09087,
+          "ts": 1790719080.0
+        },
+        {
+          "index": 63,
+          "price": 1.09046,
+          "ts": 1790719500.0
+        }
+      ],
+      "entry_ts": 1790719860.0,
+      "failed_rules": [
+        "30s_close_vs_ema20",
+        "30s_ema20_vs_ema50",
+        "30s_ema_slope_3_candles",
+        "1m_ema9_vs_ema21",
+        "1m_close_vs_ema21",
+        "1m_pullback_close_vs_ema21",
+        "1m_pullback_swing_progression",
+        "1m_pullback_vs_prior_swing",
+        "1m_close_breaks_swing",
+        "1m_confirmation_close_vs_ema9",
+        "1m_close_breaks_previous_candle",
+        "1m_rsi14_band",
+        "1m_rsi14_direction",
+        "30s_obstacle_clearance"
+      ],
+      "live_price": 1.09013,
+      "nearest_resistance": 1.09052,
+      "nearest_support": null,
+      "passed": false,
+      "previous_high": 1.09051,
+      "previous_low": 1.09023,
+      "pullback_closes_ema21": [
+        {
+          "close": 1.09066,
+          "ema21": 1.0909405658277431,
+          "ts": 1790719620.0
+        },
+        {
+          "close": 1.09033,
+          "ema21": 1.0908850598434028,
+          "ts": 1790719680.0
+        },
+        {
+          "close": 1.09027,
+          "ema21": 1.0908291453121843,
+          "ts": 1790719740.0
+        },
+        {
+          "close": 1.09049,
+          "ema21": 1.0907983139201676,
+          "ts": 1790719800.0
+        },
+        {
+          "close": 1.09015,
+          "ema21": 1.0907393762910613,
+          "ts": 1790719860.0
+        }
+      ],
+      "reason": "30s_close_vs_ema20",
+      "resistance_distance": 0.00036999999999998145,
+      "rsi": 34.151104179074295,
+      "rsi_dir": "falling",
+      "rsi_previous": 40.02154104744713,
+      "source": "broker_native_ws",
+      "status": "fail",
+      "structure": "LH+LL",
+      "support_distance": null,
+      "trend_close_at": "2026-09-30T03:42:30+05:30",
+      "trend_closed_ts": 1790719920.0,
+      "trend_count": 180,
+      "trend_open_at": "2026-09-30T03:42:00+05:30",
+      "trend_required": 53,
+      "trend_structure_required": false,
+      "trend_swing_highs": [
+        {
+          "index": 170,
+          "price": 1.09068,
+          "ts": 1790719650.0
+        },
+        {
+          "index": 177,
+          "price": 1.09052,
+          "ts": 1790719860.0
+        }
+      ],
+      "trend_swing_lows": [
+        {
+          "index": 165,
+          "price": 1.09046,
+          "ts": 1790719500.0
+        },
+        {
+          "index": 174,
+          "price": 1.09016,
+          "ts": 1790719770.0
+        }
+      ],
+      "trend_ts": 1790719920.0
+    },
+    {
+      "asset": "EUR/USD OTC",
+      "avg_prev_10_range": 0.000248000000000026,
+      "candle_event": 7,
+      "close": 1.09013,
+      "closed_only": true,
+      "confirmation_range": 0.00036999999999998145,
+      "direction": "SELL",
+      "ema20": 1.0905058776777667,
+      "ema20_3ago": 1.0906067609234287,
+      "ema21": 1.0907393762910613,
+      "ema50": 1.0907940747124167,
+      "ema50_3ago": 1.0908668840761653,
+      "ema9": 1.0904852852717835,
+      "entry_close": 1.09015,
+      "entry_close_at": "2026-09-30T03:42:00+05:30",
+      "entry_closed_ts": 1790719860.0,
+      "entry_count": 70,
+      "entry_high": 1.09052,
+      "entry_low": 1.09015,
+      "entry_open_at": "2026-09-30T03:41:00+05:30",
+      "entry_required": 21,
+      "entry_structure": "LH+LL",
+      "entry_swing_highs": [
+        {
+          "index": 40,
+          "price": 1.09176,
+          "ts": 1790718120.0
+        },
+        {
+          "index": 60,
+          "price": 1.09133,
+          "ts": 1790719320.0
+        }
+      ],
+      "entry_swing_lows": [
+        {
+          "index": 56,
+          "price": 1.09087,
+          "ts": 1790719080.0
+        },
+        {
+          "index": 63,
+          "price": 1.09046,
+          "ts": 1790719500.0
+        }
+      ],
+      "entry_ts": 1790719860.0,
+      "failed_rules": [
+        "1m_rsi14_band"
+      ],
+      "live_price": 1.09013,
+      "nearest_resistance": 1.09052,
+      "nearest_support": null,
+      "passed": false,
+      "previous_high": 1.09051,
+      "previous_low": 1.09023,
+      "pullback_closes_ema21": [
+        {
+          "close": 1.09066,
+          "ema21": 1.0909405658277431,
+          "ts": 1790719620.0
+        },
+        {
+          "close": 1.09033,
+          "ema21": 1.0908850598434028,
+          "ts": 1790719680.0
+        },
+        {
+          "close": 1.09027,
+          "ema21": 1.0908291453121843,
+          "ts": 1790719740.0
+        },
+        {
+          "close": 1.09049,
+          "ema21": 1.0907983139201676,
+          "ts": 1790719800.0
+        },
+        {
+          "close": 1.09015,
+          "ema21": 1.0907393762910613,
+          "ts": 1790719860.0
+        }
+      ],
+      "reason": "1m_rsi14_band",
+      "resistance_distance": 0.00036999999999998145,
+      "rsi": 34.151104179074295,
+      "rsi_dir": "falling",
+      "rsi_previous": 40.02154104744713,
+      "source": "broker_native_ws",
+      "status": "fail",
+      "structure": "LH+LL",
+      "support_distance": null,
+      "trend_close_at": "2026-09-30T03:42:30+05:30",
+      "trend_closed_ts": 1790719920.0,
+      "trend_count": 180,
+      "trend_open_at": "2026-09-30T03:42:00+05:30",
+      "trend_required": 53,
+      "trend_structure_required": false,
+      "trend_swing_highs": [
+        {
+          "index": 170,
+          "price": 1.09068,
+          "ts": 1790719650.0
+        },
+        {
+          "index": 177,
+          "price": 1.09052,
+          "ts": 1790719860.0
+        }
+      ],
+      "trend_swing_lows": [
+        {
+          "index": 165,
+          "price": 1.09046,
+          "ts": 1790719500.0
+        },
+        {
+          "index": 174,
+          "price": 1.09016,
+          "ts": 1790719770.0
+        }
+      ],
+      "trend_ts": 1790719920.0
+    },
+    {
+      "asset": "EUR/USD OTC",
+      "avg_prev_10_range": 0.00026800000000002375,
+      "candle_event": 8,
+      "close": 1.09027,
+      "closed_only": true,
+      "confirmation_range": 0.00022999999999995246,
+      "direction": "BUY",
+      "ema20": 1.090483413136127,
+      "ema20_3ago": 1.0905870694056963,
+      "ema21": 1.0906965664340258,
+      "ema50": 1.0907734780107543,
+      "ema50_3ago": 1.0908485244379857,
+      "ema9": 1.0904422281993265,
+      "entry_close": 1.09027,
+      "entry_close_at": "2026-09-30T03:43:00+05:30",
+      "entry_closed_ts": 1790719920.0,
+      "entry_count": 70,
+      "entry_high": 1.0903,
+      "entry_low": 1.09007,
+      "entry_open_at": "2026-09-30T03:42:00+05:30",
+      "entry_required": 21,
+      "entry_structure": "LH+LL",
+      "entry_swing_highs": [
+        {
+          "index": 39,
+          "price": 1.09176,
+          "ts": 1790718120.0
+        },
+        {
+          "index": 59,
+          "price": 1.09133,
+          "ts": 1790719320.0
+        }
+      ],
+      "entry_swing_lows": [
+        {
+          "index": 55,
+          "price": 1.09087,
+          "ts": 1790719080.0
+        },
+        {
+          "index": 62,
+          "price": 1.09046,
+          "ts": 1790719500.0
+        }
+      ],
+      "entry_ts": 1790719920.0,
+      "failed_rules": [
+        "30s_close_vs_ema20",
+        "30s_ema20_vs_ema50",
+        "30s_ema_slope_3_candles",
+        "1m_ema9_vs_ema21",
+        "1m_close_vs_ema21",
+        "1m_pullback_close_vs_ema21",
+        "1m_pullback_swing_progression",
+        "1m_pullback_vs_prior_swing",
+        "1m_close_breaks_swing",
+        "1m_confirmation_close_vs_ema9",
+        "1m_close_breaks_previous_candle",
+        "1m_rsi14_band",
+        "30s_obstacle_clearance"
+      ],
+      "live_price": 1.09026,
+      "nearest_resistance": 1.09052,
+      "nearest_support": 1.09016,
+      "passed": false,
+      "previous_high": 1.09052,
+      "previous_low": 1.09015,
+      "pullback_closes_ema21": [
+        {
+          "close": 1.09033,
+          "ema21": 1.0908848559160575,
+          "ts": 1790719680.0
+        },
+        {
+          "close": 1.09027,
+          "ema21": 1.0908289599236887,
+          "ts": 1790719740.0
+        },
+        {
+          "close": 1.09049,
+          "ema21": 1.0907981453851714,
+          "ts": 1790719800.0
+        },
+        {
+          "close": 1.09015,
+          "ema21": 1.0907392230774284,
+          "ts": 1790719860.0
+        },
+        {
+          "close": 1.09027,
+          "ema21": 1.0906965664340258,
+          "ts": 1790719920.0
+        }
+      ],
+      "reason": "30s_close_vs_ema20",
+      "resistance_distance": 0.00024999999999986144,
+      "rsi": 37.63493361632211,
+      "rsi_dir": "rising",
+      "rsi_previous": 34.15984962855936,
+      "source": "broker_native_ws",
+      "status": "fail",
+      "structure": "LH+LL",
+      "support_distance": 0.0001100000000000545,
+      "trend_close_at": "2026-09-30T03:43:00+05:30",
+      "trend_closed_ts": 1790719950.0,
+      "trend_count": 180,
+      "trend_open_at": "2026-09-30T03:42:30+05:30",
+      "trend_required": 53,
+      "trend_structure_required": false,
+      "trend_swing_highs": [
+        {
+          "index": 169,
+          "price": 1.09068,
+          "ts": 1790719650.0
+        },
+        {
+          "index": 176,
+          "price": 1.09052,
+          "ts": 1790719860.0
+        }
+      ],
+      "trend_swing_lows": [
+        {
+          "index": 164,
+          "price": 1.09046,
+          "ts": 1790719500.0
+        },
+        {
+          "index": 173,
+          "price": 1.09016,
+          "ts": 1790719770.0
+        }
+      ],
+      "trend_ts": 1790719950.0
+    },
+    {
+      "asset": "EUR/USD OTC",
+      "avg_prev_10_range": 0.00026800000000002375,
+      "candle_event": 8,
+      "close": 1.09027,
+      "closed_only": true,
+      "confirmation_range": 0.00022999999999995246,
+      "direction": "SELL",
+      "ema20": 1.090483413136127,
+      "ema20_3ago": 1.0905870694056963,
+      "ema21": 1.0906965664340258,
+      "ema50": 1.0907734780107543,
+      "ema50_3ago": 1.0908485244379857,
+      "ema9": 1.0904422281993265,
+      "entry_close": 1.09027,
+      "entry_close_at": "2026-09-30T03:43:00+05:30",
+      "entry_closed_ts": 1790719920.0,
+      "entry_count": 70,
+      "entry_high": 1.0903,
+      "entry_low": 1.09007,
+      "entry_open_at": "2026-09-30T03:42:00+05:30",
+      "entry_required": 21,
+      "entry_structure": "LH+LL",
+      "entry_swing_highs": [
+        {
+          "index": 39,
+          "price": 1.09176,
+          "ts": 1790718120.0
+        },
+        {
+          "index": 59,
+          "price": 1.09133,
+          "ts": 1790719320.0
+        }
+      ],
+      "entry_swing_lows": [
+        {
+          "index": 55,
+          "price": 1.09087,
+          "ts": 1790719080.0
+        },
+        {
+          "index": 62,
+          "price": 1.09046,
+          "ts": 1790719500.0
+        }
+      ],
+      "entry_ts": 1790719920.0,
+      "failed_rules": [
+        "1m_close_breaks_previous_candle",
+        "1m_rsi14_direction",
+        "30s_obstacle_clearance"
+      ],
+      "live_price": 1.09026,
+      "nearest_resistance": 1.09052,
+      "nearest_support": 1.09016,
+      "passed": false,
+      "previous_high": 1.09052,
+      "previous_low": 1.09015,
+      "pullback_closes_ema21": [
+        {
+          "close": 1.09033,
+          "ema21": 1.0908848559160575,
+          "ts": 1790719680.0
+        },
+        {
+          "close": 1.09027,
+          "ema21": 1.0908289599236887,
+          "ts": 1790719740.0
+        },
+        {
+          "close": 1.09049,
+          "ema21": 1.0907981453851714,
+          "ts": 1790719800.0
+        },
+        {
+          "close": 1.09015,
+          "ema21": 1.0907392230774284,
+          "ts": 1790719860.0
+        },
+        {
+          "close": 1.09027,
+          "ema21": 1.0906965664340258,
+          "ts": 1790719920.0
+        }
+      ],
+      "reason": "1m_close_breaks_previous_candle",
+      "resistance_distance": 0.00024999999999986144,
+      "rsi": 37.63493361632211,
+      "rsi_dir": "rising",
+      "rsi_previous": 34.15984962855936,
+      "source": "broker_native_ws",
+      "status": "fail",
+      "structure": "LH+LL",
+      "support_distance": 0.0001100000000000545,
+      "trend_close_at": "2026-09-30T03:43:00+05:30",
+      "trend_closed_ts": 1790719950.0,
+      "trend_count": 180,
+      "trend_open_at": "2026-09-30T03:42:30+05:30",
+      "trend_required": 53,
+      "trend_structure_required": false,
+      "trend_swing_highs": [
+        {
+          "index": 169,
+          "price": 1.09068,
+          "ts": 1790719650.0
+        },
+        {
+          "index": 176,
+          "price": 1.09052,
+          "ts": 1790719860.0
+        }
+      ],
+      "trend_swing_lows": [
+        {
+          "index": 164,
+          "price": 1.09046,
+          "ts": 1790719500.0
+        },
+        {
+          "index": 173,
+          "price": 1.09016,
+          "ts": 1790719770.0
+        }
+      ],
+      "trend_ts": 1790719950.0
+    },
+    {
+      "asset": "EUR/USD OTC",
+      "avg_prev_10_range": 0.00026800000000002375,
+      "candle_event": 9,
+      "close": 1.09043,
+      "closed_only": true,
+      "confirmation_range": 0.00022999999999995246,
+      "direction": "BUY",
+      "ema20": 1.0904783261703312,
+      "ema20_3ago": 1.090545443747403,
+      "ema21": 1.0906965664340258,
+      "ema50": 1.0907599859087656,
+      "ema50_3ago": 1.0908211060934103,
+      "ema9": 1.0904422281993265,
+      "entry_close": 1.09027,
+      "entry_close_at": "2026-09-30T03:43:00+05:30",
+      "entry_closed_ts": 1790719920.0,
+      "entry_count": 70,
+      "entry_high": 1.0903,
+      "entry_low": 1.09007,
+      "entry_open_at": "2026-09-30T03:42:00+05:30",
+      "entry_required": 21,
+      "entry_structure": "LH+LL",
+      "entry_swing_highs": [
+        {
+          "index": 39,
+          "price": 1.09176,
+          "ts": 1790718120.0
+        },
+        {
+          "index": 59,
+          "price": 1.09133,
+          "ts": 1790719320.0
+        }
+      ],
+      "entry_swing_lows": [
+        {
+          "index": 55,
+          "price": 1.09087,
+          "ts": 1790719080.0
+        },
+        {
+          "index": 62,
+          "price": 1.09046,
+          "ts": 1790719500.0
+        }
+      ],
+      "entry_ts": 1790719920.0,
+      "failed_rules": [
+        "30s_close_vs_ema20",
+        "30s_ema20_vs_ema50",
+        "30s_ema_slope_3_candles",
+        "1m_ema9_vs_ema21",
+        "1m_close_vs_ema21",
+        "1m_pullback_close_vs_ema21",
+        "1m_pullback_swing_progression",
+        "1m_pullback_vs_prior_swing",
+        "1m_close_breaks_swing",
+        "1m_confirmation_close_vs_ema9",
+        "1m_close_breaks_previous_candle",
+        "1m_rsi14_band",
+        "30s_obstacle_clearance"
+      ],
+      "live_price": 1.09042,
+      "nearest_resistance": 1.09052,
+      "nearest_support": 1.09016,
+      "passed": false,
+      "previous_high": 1.09052,
+      "previous_low": 1.09015,
+      "pullback_closes_ema21": [
+        {
+          "close": 1.09033,
+          "ema21": 1.0908848559160575,
+          "ts": 1790719680.0
+        },
+        {
+          "close": 1.09027,
+          "ema21": 1.0908289599236887,
+          "ts": 1790719740.0
+        },
+        {
+          "close": 1.09049,
+          "ema21": 1.0907981453851714,
+          "ts": 1790719800.0
+        },
+        {
+          "close": 1.09015,
+          "ema21": 1.0907392230774284,
+          "ts": 1790719860.0
+        },
+        {
+          "close": 1.09027,
+          "ema21": 1.0906965664340258,
+          "ts": 1790719920.0
+        }
+      ],
+      "reason": "30s_close_vs_ema20",
+      "resistance_distance": 0.00024999999999986144,
+      "rsi": 37.63493361632211,
+      "rsi_dir": "rising",
+      "rsi_previous": 34.15984962855936,
+      "source": "broker_native_ws",
+      "status": "fail",
+      "structure": "LH+LL",
+      "support_distance": 0.0001100000000000545,
+      "trend_close_at": "2026-09-30T03:43:30+05:30",
+      "trend_closed_ts": 1790719980.0,
+      "trend_count": 180,
+      "trend_open_at": "2026-09-30T03:43:00+05:30",
+      "trend_required": 53,
+      "trend_structure_required": false,
+      "trend_swing_highs": [
+        {
+          "index": 168,
+          "price": 1.09068,
+          "ts": 1790719650.0
+        },
+        {
+          "index": 175,
+          "price": 1.09052,
+          "ts": 1790719860.0
+        }
+      ],
+      "trend_swing_lows": [
+        {
+          "index": 172,
+          "price": 1.09016,
+          "ts": 1790719770.0
+        },
+        {
+          "index": 177,
+          "price": 1.09007,
+          "ts": 1790719920.0
+        }
+      ],
+      "trend_ts": 1790719980.0
+    },
+    {
+      "asset": "EUR/USD OTC",
+      "avg_prev_10_range": 0.00026800000000002375,
+      "candle_event": 9,
+      "close": 1.09043,
+      "closed_only": true,
+      "confirmation_range": 0.00022999999999995246,
+      "direction": "SELL",
+      "ema20": 1.0904783261703312,
+      "ema20_3ago": 1.090545443747403,
+      "ema21": 1.0906965664340258,
+      "ema50": 1.0907599859087656,
+      "ema50_3ago": 1.0908211060934103,
+      "ema9": 1.0904422281993265,
+      "entry_close": 1.09027,
+      "entry_close_at": "2026-09-30T03:43:00+05:30",
+      "entry_closed_ts": 1790719920.0,
+      "entry_count": 70,
+      "entry_high": 1.0903,
+      "entry_low": 1.09007,
+      "entry_open_at": "2026-09-30T03:42:00+05:30",
+      "entry_required": 21,
+      "entry_structure": "LH+LL",
+      "entry_swing_highs": [
+        {
+          "index": 39,
+          "price": 1.09176,
+          "ts": 1790718120.0
+        },
+        {
+          "index": 59,
+          "price": 1.09133,
+          "ts": 1790719320.0
+        }
+      ],
+      "entry_swing_lows": [
+        {
+          "index": 55,
+          "price": 1.09087,
+          "ts": 1790719080.0
+        },
+        {
+          "index": 62,
+          "price": 1.09046,
+          "ts": 1790719500.0
+        }
+      ],
+      "entry_ts": 1790719920.0,
+      "failed_rules": [
+        "1m_close_breaks_previous_candle",
+        "1m_rsi14_direction",
+        "30s_obstacle_clearance"
+      ],
+      "live_price": 1.09042,
+      "nearest_resistance": 1.09052,
+      "nearest_support": 1.09016,
+      "passed": false,
+      "previous_high": 1.09052,
+      "previous_low": 1.09015,
+      "pullback_closes_ema21": [
+        {
+          "close": 1.09033,
+          "ema21": 1.0908848559160575,
+          "ts": 1790719680.0
+        },
+        {
+          "close": 1.09027,
+          "ema21": 1.0908289599236887,
+          "ts": 1790719740.0
+        },
+        {
+          "close": 1.09049,
+          "ema21": 1.0907981453851714,
+          "ts": 1790719800.0
+        },
+        {
+          "close": 1.09015,
+          "ema21": 1.0907392230774284,
+          "ts": 1790719860.0
+        },
+        {
+          "close": 1.09027,
+          "ema21": 1.0906965664340258,
+          "ts": 1790719920.0
+        }
+      ],
+      "reason": "1m_close_breaks_previous_candle",
+      "resistance_distance": 0.00024999999999986144,
+      "rsi": 37.63493361632211,
+      "rsi_dir": "rising",
+      "rsi_previous": 34.15984962855936,
+      "source": "broker_native_ws",
+      "status": "fail",
+      "structure": "LH+LL",
+      "support_distance": 0.0001100000000000545,
+      "trend_close_at": "2026-09-30T03:43:30+05:30",
+      "trend_closed_ts": 1790719980.0,
+      "trend_count": 180,
+      "trend_open_at": "2026-09-30T03:43:00+05:30",
+      "trend_required": 53,
+      "trend_structure_required": false,
+      "trend_swing_highs": [
+        {
+          "index": 168,
+          "price": 1.09068,
+          "ts": 1790719650.0
+        },
+        {
+          "index": 175,
+          "price": 1.09052,
+          "ts": 1790719860.0
+        }
+      ],
+      "trend_swing_lows": [
+        {
+          "index": 172,
+          "price": 1.09016,
+          "ts": 1790719770.0
+        },
+        {
+          "index": 177,
+          "price": 1.09007,
+          "ts": 1790719920.0
+        }
+      ],
+      "trend_ts": 1790719980.0
+    },
+    {
+      "asset": "EUR/USD OTC",
+      "avg_prev_10_range": 0.0002670000000000172,
+      "candle_event": 10,
+      "close": 1.09029,
+      "closed_only": true,
+      "confirmation_range": 0.00027999999999983594,
+      "direction": "BUY",
+      "ema20": 1.090460390342785,
+      "ema20_3ago": 1.0905058776737908,
+      "ema21": 1.09065955519998,
+      "ema50": 1.090741465584503,
+      "ema50_3ago": 1.0907939029762248,
+      "ema9": 1.0904117825528792,
+      "entry_close": 1.09029,
+      "entry_close_at": "2026-09-30T03:44:00+05:30",
+      "entry_closed_ts": 1790719980.0,
+      "entry_count": 70,
+      "entry_high": 1.09045,
+      "entry_low": 1.09017,
+      "entry_open_at": "2026-09-30T03:43:00+05:30",
+      "entry_required": 21,
+      "entry_structure": "LH+LL",
+      "entry_swing_highs": [
+        {
+          "index": 58,
+          "price": 1.09133,
+          "ts": 1790719320.0
+        },
+        {
+          "index": 67,
+          "price": 1.09052,
+          "ts": 1790719860.0
+        }
+      ],
+      "entry_swing_lows": [
+        {
+          "index": 54,
+          "price": 1.09087,
+          "ts": 1790719080.0
+        },
+        {
+          "index": 61,
+          "price": 1.09046,
+          "ts": 1790719500.0
+        }
+      ],
+      "entry_ts": 1790719980.0,
+      "failed_rules": [
+        "30s_close_vs_ema20",
+        "30s_ema20_vs_ema50",
+        "30s_ema_slope_3_candles",
+        "1m_ema9_vs_ema21",
+        "1m_close_vs_ema21",
+        "1m_pullback_close_vs_ema21",
+        "1m_pullback_swing_progression",
+        "1m_pullback_vs_prior_swing",
+        "1m_close_breaks_swing",
+        "1m_confirmation_close_vs_ema9",
+        "1m_close_breaks_previous_candle",
+        "1m_rsi14_band",
+        "30s_obstacle_clearance"
+      ],
+      "live_price": 1.0903,
+      "nearest_resistance": 1.09052,
+      "nearest_support": 1.09016,
+      "passed": false,
+      "previous_high": 1.0903,
+      "previous_low": 1.09007,
+      "pullback_closes_ema21": [
+        {
+          "close": 1.09027,
+          "ema21": 1.090828885768291,
+          "ts": 1790719740.0
+        },
+        {
+          "close": 1.09049,
+          "ema21": 1.0907980779711737,
+          "ts": 1790719800.0
+        },
+        {
+          "close": 1.09015,
+          "ema21": 1.090739161791976,
+          "ts": 1790719860.0
+        },
+        {
+          "close": 1.09027,
+          "ema21": 1.090696510719978,
+          "ts": 1790719920.0
+        },
+        {
+          "close": 1.09029,
+          "ema21": 1.09065955519998,
+          "ts": 1790719980.0
+        }
+      ],
+      "reason": "30s_close_vs_ema20",
+      "resistance_distance": 0.00022999999999995246,
+      "rsi": 38.20891666813773,
+      "rsi_dir": "rising",
+      "rsi_previous": 37.62417367279544,
+      "source": "broker_native_ws",
+      "status": "fail",
+      "structure": "LH+LL",
+      "support_distance": 0.00012999999999996348,
+      "trend_close_at": "2026-09-30T03:44:00+05:30",
+      "trend_closed_ts": 1790720010.0,
+      "trend_count": 180,
+      "trend_open_at": "2026-09-30T03:43:30+05:30",
+      "trend_required": 53,
+      "trend_structure_required": false,
+      "trend_swing_highs": [
+        {
+          "index": 167,
+          "price": 1.09068,
+          "ts": 1790719650.0
+        },
+        {
+          "index": 174,
+          "price": 1.09052,
+          "ts": 1790719860.0
+        }
+      ],
+      "trend_swing_lows": [
+        {
+          "index": 171,
+          "price": 1.09016,
+          "ts": 1790719770.0
+        },
+        {
+          "index": 176,
+          "price": 1.09007,
+          "ts": 1790719920.0
+        }
+      ],
+      "trend_ts": 1790720010.0
+    },
+    {
+      "asset": "EUR/USD OTC",
+      "avg_prev_10_range": 0.0002670000000000172,
+      "candle_event": 10,
+      "close": 1.09029,
+      "closed_only": true,
+      "confirmation_range": 0.00027999999999983594,
+      "direction": "SELL",
+      "ema20": 1.090460390342785,
+      "ema20_3ago": 1.0905058776737908,
+      "ema21": 1.09065955519998,
+      "ema50": 1.090741465584503,
+      "ema50_3ago": 1.0907939029762248,
+      "ema9": 1.0904117825528792,
+      "entry_close": 1.09029,
+      "entry_close_at": "2026-09-30T03:44:00+05:30",
+      "entry_closed_ts": 1790719980.0,
+      "entry_count": 70,
+      "entry_high": 1.09045,
+      "entry_low": 1.09017,
+      "entry_open_at": "2026-09-30T03:43:00+05:30",
+      "entry_required": 21,
+      "entry_structure": "LH+LL",
+      "entry_swing_highs": [
+        {
+          "index": 58,
+          "price": 1.09133,
+          "ts": 1790719320.0
+        },
+        {
+          "index": 67,
+          "price": 1.09052,
+          "ts": 1790719860.0
+        }
+      ],
+      "entry_swing_lows": [
+        {
+          "index": 54,
+          "price": 1.09087,
+          "ts": 1790719080.0
+        },
+        {
+          "index": 61,
+          "price": 1.09046,
+          "ts": 1790719500.0
+        }
+      ],
+      "entry_ts": 1790719980.0,
+      "failed_rules": [
+        "1m_close_breaks_previous_candle",
+        "1m_rsi14_direction",
+        "30s_obstacle_clearance"
+      ],
+      "live_price": 1.0903,
+      "nearest_resistance": 1.09052,
+      "nearest_support": 1.09016,
+      "passed": false,
+      "previous_high": 1.0903,
+      "previous_low": 1.09007,
+      "pullback_closes_ema21": [
+        {
+          "close": 1.09027,
+          "ema21": 1.090828885768291,
+          "ts": 1790719740.0
+        },
+        {
+          "close": 1.09049,
+          "ema21": 1.0907980779711737,
+          "ts": 1790719800.0
+        },
+        {
+          "close": 1.09015,
+          "ema21": 1.090739161791976,
+          "ts": 1790719860.0
+        },
+        {
+          "close": 1.09027,
+          "ema21": 1.090696510719978,
+          "ts": 1790719920.0
+        },
+        {
+          "close": 1.09029,
+          "ema21": 1.09065955519998,
+          "ts": 1790719980.0
+        }
+      ],
+      "reason": "1m_close_breaks_previous_candle",
+      "resistance_distance": 0.00022999999999995246,
+      "rsi": 38.20891666813773,
+      "rsi_dir": "rising",
+      "rsi_previous": 37.62417367279544,
+      "source": "broker_native_ws",
+      "status": "fail",
+      "structure": "LH+LL",
+      "support_distance": 0.00012999999999996348,
+      "trend_close_at": "2026-09-30T03:44:00+05:30",
+      "trend_closed_ts": 1790720010.0,
+      "trend_count": 180,
+      "trend_open_at": "2026-09-30T03:43:30+05:30",
+      "trend_required": 53,
+      "trend_structure_required": false,
+      "trend_swing_highs": [
+        {
+          "index": 167,
+          "price": 1.09068,
+          "ts": 1790719650.0
+        },
+        {
+          "index": 174,
+          "price": 1.09052,
+          "ts": 1790719860.0
+        }
+      ],
+      "trend_swing_lows": [
+        {
+          "index": 171,
+          "price": 1.09016,
+          "ts": 1790719770.0
+        },
+        {
+          "index": 176,
+          "price": 1.09007,
+          "ts": 1790719920.0
+        }
+      ],
+      "trend_ts": 1790720010.0
+    }
+  ],
+  "execution_logs": [
+    "2026-09-30 03:44:01,536 [INFO] multi_agent_orchestrator \u2014 [Session] accepted_this_run=0 account_accepted_today=0 account_settled_today=0 account_net_pnl=0 strategy_settled_today=0 strategy_wins_today=0"
+  ]
+}

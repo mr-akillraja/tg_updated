@@ -1,0 +1,13 @@
+logs/
+logs/
+*.log
+
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.zip
+*.log
+.env
+.env.*
+!.env.example

@@ -1,0 +1,198 @@
+[
+  {
+    "asset": "EURUSD",
+    "timeframe": "M1",
+    "strategy_signal": "HOLD",
+    "strategy_details": {
+      "ha_bull": false,
+      "ha_bear": false,
+      "rsi": 66.66666666666666
+    },
+    "model_signal": "HOLD",
+    "model_confidence": 0.0,
+    "confirmed_by_model": false,
+    "timestamp": "2026-05-28T03:16:49.791179"
+  },
+  {
+    "asset": "EURUSD",
+    "timeframe": "M5",
+    "strategy_signal": "HOLD",
+    "strategy_details": {
+      "ha_bull": true,
+      "ha_bear": false,
+      "rsi": 53.84458909682669,
+      "psar_now": 1.1631964445114136,
+      "psar_prev": 1.163061261177063,
+      "macd_now": 1.2692406463730153e-05,
+      "macd_prev": 5.33368339863671e-06
+    },
+    "model_signal": "HOLD",
+    "model_confidence": 0.0,
+    "confirmed_by_model": false,
+    "timestamp": "2026-05-28T03:16:50.078033"
+  },
+  {
+    "asset": "EURUSD",
+    "timeframe": "M15",
+    "strategy_signal": "HOLD",
+    "strategy_details": {
+      "ha_bull": false,
+      "ha_bear": false,
+      "rsi": 57.891320474777444
+    },
+    "model_signal": "HOLD",
+    "model_confidence": 0.0,
+    "confirmed_by_model": false,
+    "timestamp": "2026-05-28T03:16:50.627440"
+  },
+  {
+    "asset": "GBPUSD",
+    "timeframe": "M1",
+    "strategy_signal": "HOLD",
+    "strategy_details": {
+      "ha_bull": false,
+      "ha_bear": false,
+      "rsi": 53.973753280839894
+    },
+    "model_signal": "HOLD",
+    "model_confidence": 0.0,
+    "confirmed_by_model": false,
+    "timestamp": "2026-05-28T03:16:50.888370"
+  },
+  {
+    "asset": "GBPUSD",
+    "timeframe": "M5",
+    "strategy_signal": "HOLD",
+    "strategy_details": {
+      "ha_bull": false,
+      "ha_bear": false,
+      "rsi": 48.73618132325982
+    },
+    "model_signal": "HOLD",
+    "model_confidence": 0.0,
+    "confirmed_by_model": false,
+    "timestamp": "2026-05-28T03:16:51.183868"
+  },
+  {
+    "asset": "GBPUSD",
+    "timeframe": "M15",
+    "strategy_signal": "HOLD",
+    "strategy_details": {
+      "ha_bull": true,
+      "ha_bear": false,
+      "rsi": 61.330396475770925,
+      "psar_now": 1.3427324295043945,
+      "psar_prev": 1.3426783084869385,
+      "macd_now": 5.384368874276335e-05,
+      "macd_prev": 4.8023965867050576e-05
+    },
+    "model_signal": "HOLD",
+    "model_confidence": 0.0,
+    "confirmed_by_model": false,
+    "timestamp": "2026-05-28T03:16:51.757418"
+  },
+  {
+    "asset": "USDJPY",
+    "timeframe": "M1",
+    "strategy_signal": "HOLD",
+    "strategy_details": {
+      "ha_bull": false,
+      "ha_bear": false,
+      "rsi": 34.95904690990319
+    },
+    "model_signal": "HOLD",
+    "model_confidence": 0.0,
+    "confirmed_by_model": false,
+    "timestamp": "2026-05-28T03:16:52.057935"
+  },
+  {
+    "asset": "USDJPY",
+    "timeframe": "M5",
+    "strategy_signal": "HOLD",
+    "strategy_details": {
+      "ha_bull": false,
+      "ha_bear": true,
+      "rsi": 28.178980228928197,
+      "psar_now": 159.4199981689453,
+      "psar_prev": 159.4199981689453,
+      "macd_now": -0.005183340032897263,
+      "macd_prev": -0.005220927764454902
+    },
+    "model_signal": "HOLD",
+    "model_confidence": 0.0,
+    "confirmed_by_model": false,
+    "timestamp": "2026-05-28T03:16:52.331224"
+  },
+  {
+    "asset": "USDJPY",
+    "timeframe": "M15",
+    "strategy_signal": "HOLD",
+    "strategy_details": {
+      "ha_bull": false,
+      "ha_bear": true,
+      "rsi": 26.75056901861025,
+      "psar_now": 159.4199981689453,
+      "psar_prev": 159.4199981689453,
+      "macd_now": -0.01610888226581066,
+      "macd_prev": -0.014631595098601811
+    },
+    "model_signal": "HOLD",
+    "model_confidence": 0.0,
+    "confirmed_by_model": false,
+    "timestamp": "2026-05-28T03:16:52.739840"
+  },
+  {
+    "asset": "BTCUSD",
+    "timeframe": "M1",
+    "strategy_signal": "HOLD",
+    "strategy_details": {
+      "ha_bull": false,
+      "ha_bear": true,
+      "rsi": 15.622478896519155,
+      "psar_now": 74388.28125,
+      "psar_prev": 74323.5390625,
+      "macd_now": -35.62200829521437,
+      "macd_prev": -32.28890342147103
+    },
+    "model_signal": "HOLD",
+    "model_confidence": 0.0,
+    "confirmed_by_model": false,
+    "timestamp": "2026-05-28T03:16:53.030325"
+  },
+  {
+    "asset": "BTCUSD",
+    "timeframe": "M5",
+    "strategy_signal": "HOLD",
+    "strategy_details": {
+      "ha_bull": false,
+      "ha_bear": true,
+      "rsi": 10.090655141516905,
+      "psar_now": 74323.5390625,
+      "psar_prev": 74323.5390625,
+      "macd_now": -80.81460706690837,
+      "macd_prev": -64.58354292618225
+    },
+    "model_signal": "HOLD",
+    "model_confidence": 0.0,
+    "confirmed_by_model": false,
+    "timestamp": "2026-05-28T03:16:53.301970"
+  },
+  {
+    "asset": "BTCUSD",
+    "timeframe": "M15",
+    "strategy_signal": "HOLD",
+    "strategy_details": {
+      "ha_bull": false,
+      "ha_bear": true,
+      "rsi": 35.40783656045129,
+      "psar_now": 74323.5390625,
+      "psar_prev": 74323.5390625,
+      "macd_now": -29.759700738749927,
+      "macd_prev": 0.955728343083166
+    },
+    "model_signal": "HOLD",
+    "model_confidence": 0.0,
+    "confirmed_by_model": false,
+    "timestamp": "2026-05-28T03:16:53.663032"
+  }
+]

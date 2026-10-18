@@ -1,0 +1,70 @@
+[
+  {
+    "observed_at": 1790721349.0916228,
+    "before": [
+      {
+        "test": "cor-w-panel-trades",
+        "visible": true,
+        "text": "Trades\nFixed Time\nInZone\nForex\nStocks\n\nNo\u00a0active Fixed\u00a0Time trades or orders on this account\n\nExplore Assets"
+      },
+      {
+        "test": "techanalysis-instrument-legends",
+        "visible": true,
+        "text": "EMA\n\n9\n\nEMA\n\n21\n\nRSI\n\n14"
+      },
+      {
+        "test": "TimeFrameSelector.selected",
+        "visible": true,
+        "text": "1m"
+      },
+      {
+        "test": "indicator-menu",
+        "visible": true,
+        "text": ""
+      }
+    ],
+    "configuration": {
+      "source": "broker_ui",
+      "view": "entry",
+      "verified": true,
+      "timeframe_seconds": 60,
+      "expected": {
+        "timeframe": "1m",
+        "indicators": [
+          {
+            "name": "EMA",
+            "period": 9
+          },
+          {
+            "name": "EMA",
+            "period": 21
+          },
+          {
+            "name": "RSI",
+            "period": 14
+          }
+        ]
+      },
+      "observed": {
+        "timeframe": "1m",
+        "indicators": [
+          {
+            "name": "EMA",
+            "period": 9
+          },
+          {
+            "name": "EMA",
+            "period": 21
+          },
+          {
+            "name": "RSI",
+            "period": 14
+          }
+        ]
+      },
+      "changed": false,
+      "reason": "already_matched",
+      "attempts": 1
+    }
+  }
+]

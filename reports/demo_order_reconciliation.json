@@ -1,0 +1,15 @@
+{
+  "order": {
+    "id": "12531898136",
+    "asset": "EUR/USD OTC",
+    "amount": 200.0,
+    "direction": "BUY",
+    "duration": 60,
+    "status": "WIN",
+    "pnl": 170.0
+  },
+  "broker_text": "EUR/USD OTC\n\n\u2022\n\n85%\n\n1 min\n\n\u0110200.00\n\n+\u0110170.00\n\nShow on Chart\n\nAmount\n\n\u0110200.00\n\nPnL\n\n+\u0110170.00\n\nTrade ID\n\n12531898136\n\nClosed\n\nwith a profit\n\nDuration\n\n1 min\n\nTrade opened\n\nSep 29, 03:10:02.814\n\nTrade closed\n\nSep 29, 03:11:02.814\n\nOpening quote\n\n1.09510\n\nClosing quote\n\n1.09514",
+  "demo": true,
+  "strategy_signal": false,
+  "reconciled": true
+}

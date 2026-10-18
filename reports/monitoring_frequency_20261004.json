@@ -1,0 +1,48 @@
+{
+  "log": "logs/runs/unified_20261004_013438.log",
+  "observed_seconds": 1480.347,
+  "decision_records": 1480,
+  "median_evaluation_interval_seconds": 1.0009,
+  "unique_confirmed_buy_setups": 0,
+  "fresh_setups_in_five_second_entry_window": 0,
+  "setups_also_passing_logged_5m_filter": 0,
+  "observed_accepted_order_ids": 0,
+  "decision_reasons": {
+    "1m_confirmation_range": 8,
+    "1m_rsi14_band": 159,
+    "stale_or_unavailable_quote": 160,
+    "insufficient_closed_candles": 32,
+    "1m_close_breaks_previous_candle": 107,
+    "30s_close_vs_ema20": 911,
+    "30s_ema20_vs_ema50": 103
+  },
+  "failed_rules_per_unique_setup": {
+    "30s_close_vs_ema20": 18,
+    "1m_confirmation_close_vs_ema9": 17,
+    "1m_ema9_vs_ema21": 13,
+    "1m_close_breaks_previous_candle": 20,
+    "1m_close_breaks_swing": 19,
+    "30s_ema_slope_3_candles": 19,
+    "1m_confirmation_range": 1,
+    "1m_pullback_close_vs_ema21": 19,
+    "1m_pullback_vs_prior_swing": 5,
+    "1m_close_vs_ema21": 18,
+    "1m_rsi14_direction": 13,
+    "30s_obstacle_clearance": 23,
+    "1m_rsi14_band": 20,
+    "1m_pullback_swing_progression": 2,
+    "30s_ema20_vs_ema50": 12
+  },
+  "target_trades_per_hour": [
+    10,
+    15
+  ],
+  "frequency_target_verified": false,
+  "limitations": [
+    "Counts describe this recorded interval; no trades or outcomes are simulated.",
+    "Repeated evaluations of one setup count once; risk limits and open orders may block candidates.",
+    "Logged filter results reflect the version running when the log was written.",
+    "A market-dependent 10\u201315 trades/hour rate is not guaranteed by these counts."
+  ]
+}
+

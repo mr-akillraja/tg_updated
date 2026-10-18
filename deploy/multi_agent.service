@@ -1,0 +1,14 @@
+[Unit]
+Description=TG Algo Multi-Agent Orchestrator
+After=network.target
+
+[Service]
+User=akill-sud
+WorkingDirectory=/home/akill-sud/Documents/projects/algo-olymp/tg_algo-main
+Environment=PATH=/home/akill-sud/anaconda3/envs/tg_algo/bin:/usr/bin
+ExecStart=/home/akill-sud/anaconda3/envs/tg_algo/bin/python /home/akill-sud/Documents/projects/algo-olymp/tg_algo-main/multi_agent_orchestrator.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

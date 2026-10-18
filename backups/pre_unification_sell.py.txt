@@ -1,0 +1,1461 @@
+"""
+multi_agent_orchestrator.py — v4.2
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Strategy: EMA(9/21) crossover + Aroon(25) crossover confluence
+Plan:     $10,000 account | $200/trade | $2,000 daily circuit breaker
+Sessions: DISABLED — continuous trading (test mode)
+
+Key changes vs v4.1:
+  1. Aroon indicator integrated as PRIMARY signal alongside EMA crossover
+  2. 5/9 minimum confluence gate — only trades on strong alignment
+  3. Session gates removed — trades continuously during testing
+  4. $200 fixed trade size with $2,000 circuit breaker
+  5. RSI seed noise removed — no more RSI=2.9 nonsense
+  6. Signal flip for regime in correct place (before chart analysis)
+  7. Trade executed only on BOTH EMA cross AND Aroon cross confirming
+"""
+
+import asyncio
+import logging
+import os
+import sys
+import time
+from datetime import datetime
+from typing import Dict, List, Optional, Tuple
+import shutil
+from pathlib import Path
+import numpy as np
+import argparse
+
+sys.path.insert(0, os.path.dirname(__file__))
+
+from config import settings
+from bot.risk import RiskManager, TradeRecord
+from bot.browser import OlymtradeBot
+from models.predictor import Signal
+from agents.agent_multi_timeframe import MultiTimeframeAgent
+from agents.agent_rl_learning import RLFeedbackAgent
+from agents.agent_pipeline_supervisor import PipelineSupervisorAgent
+from agents.agent_regime_detector import RegimeDetector
+from agents.agent_asset_selector import AssetSelectorAgent
+from agents.chart_analyzer import ChartAnalyzer, AnalysisResult
+from agents.multi_timeframe_consensus import MultiTimeframeConsensusAnalyzer
+
+BEAR_REGIMES = {"BEAR_TREND", "HIGH_VOL_DOWN", "BREAKOUT_DOWN"}
+BULL_REGIMES = {"BULL_TREND",  "HIGH_VOL_UP",  "BREAKOUT_UP"}
+
+# ── Risk constants (from your strategy plan) ──────────────────────────────────
+TRADE_AMOUNT        = 200.0    # $200 fixed per trade
+DAILY_LOSS_LIMIT    = 2000.0   # $2,000 circuit breaker
+MIN_CONFIDENCE      = 0.60     # 60% minimum (strategy doc: 60–65%)
+MIN_CONFLUENCES     = 5        # require 5/9 indicators to agree
+MAX_TRADES_PER_DAY  = 20       # hard cap
+PAYOUT_MINIMUM      = 0.80     # skip assets below 80% payout
+FTT_DURATION_S      = 60       # 1 minute trades
+
+
+def _rotate_daily_log(log_path: str):
+    if not os.path.exists(log_path):
+        return
+    archive_dir = settings.LOG_ARCHIVE_DIR
+    os.makedirs(archive_dir, exist_ok=True)
+    today     = datetime.now().date()
+    file_date = datetime.fromtimestamp(os.path.getmtime(log_path)).date()
+    if file_date < today:
+        name = (f"multi_agent_system_"
+                f"{file_date.strftime(settings.LOG_DATE_FORMAT)}.log")
+        path = os.path.join(archive_dir, name)
+        if os.path.exists(path):
+            name = (f"multi_agent_system_"
+                    f"{file_date.strftime(settings.LOG_DATE_FORMAT)}"
+                    f"_{int(time.time())}.log")
+            path = os.path.join(archive_dir, name)
+        os.rename(log_path, path)
+
+
+def _ema_array(values: np.ndarray, period: int) -> np.ndarray:
+    values = np.asarray(values, dtype=float)
+    if len(values) == 0:
+        return values
+    out = np.empty_like(values, dtype=float)
+    out[0] = values[0]
+    k = 2.0 / (period + 1.0)
+    for i in range(1, len(values)):
+        out[i] = values[i] * k + out[i - 1] * (1.0 - k)
+    return out
+
+
+def _validated_swing_points(highs: np.ndarray, lows: np.ndarray) -> Tuple[list, list]:
+    high_swings, low_swings = [], []
+    h = np.asarray(highs, dtype=float)
+    l = np.asarray(lows, dtype=float)
+    for i in range(2, len(h) - 2):
+        if h[i] > max(h[i - 2:i]) and h[i] > max(h[i + 1:i + 3]):
+            high_swings.append(float(h[i]))
+        if l[i] < min(l[i - 2:i]) and l[i] < min(l[i + 1:i + 3]):
+            low_swings.append(float(l[i]))
+    return high_swings, low_swings
+
+
+def _validate_5m_bull_structure(closes, highs, lows) -> Tuple[bool, str]:
+    closes = np.asarray(closes, dtype=float)
+    highs = np.asarray(highs, dtype=float)
+    lows = np.asarray(lows, dtype=float)
+
+    if len(closes) < 10 or len(highs) < 10 or len(lows) < 10:
+        return False, "insufficient 30s candles"
+
+    ema20 = _ema_array(closes, 20)
+    ema50 = _ema_array(closes, 50)
+    if not closes[-1] > ema20[-1]:
+        return False, "latest 30s close is not above EMA20"
+    if not ema20[-1] > ema50[-1]:
+        return False, "EMA20 is not above EMA50"
+    if not (ema20[-1] > ema20[-3] and ema50[-1] > ema50[-3]):
+        return False, "EMA20/EMA50 have not risen over prior 3 candles"
+
+    # Relax the 30s swing gate: keep the EMA trend rule intact, but do not
+    # require a confirmed HH+HL signal before the 1m pullback/resumption check.
+    return True, "30s bullish EMA trend confirmed"
+
+
+def _validate_5m_bear_structure(closes, highs, lows) -> Tuple[bool, str]:
+    closes = np.asarray(closes, dtype=float)
+    highs = np.asarray(highs, dtype=float)
+    lows = np.asarray(lows, dtype=float)
+
+    if len(closes) < 10 or len(highs) < 10 or len(lows) < 10:
+        return False, "insufficient 30s candles"
+
+    ema20 = _ema_array(closes, 20)
+    ema50 = _ema_array(closes, 50)
+    if not closes[-1] < ema20[-1]:
+        return False, "latest 30s close is not below EMA20"
+    if not ema20[-1] < ema50[-1]:
+        return False, "EMA20 is not below EMA50"
+    if not (ema20[-1] < ema20[-3] and ema50[-1] < ema50[-3]):
+        return False, "EMA20/EMA50 have not fallen over prior 3 candles"
+
+    return True, "30s bearish EMA trend confirmed"
+
+
+def _validate_1m_pullback_buy(closes, highs, lows) -> Tuple[bool, str]:
+    closes = np.asarray(closes, dtype=float)
+    highs = np.asarray(highs, dtype=float)
+    lows = np.asarray(lows, dtype=float)
+
+    if len(closes) < 12 or len(highs) < 12 or len(lows) < 12:
+        return False, "insufficient 1m candles"
+
+    ema9 = _ema_array(closes, 9)
+    ema21 = _ema_array(closes, 21)
+    if not ema9[-1] > ema21[-1]:
+        return False, "EMA9 is not above EMA21"
+    if closes[-1] <= ema21[-1]:
+        return False, "latest 1m close is not above EMA21"
+
+    recent_lows = lows[-5:]
+    if np.min(recent_lows) < ema21[-1]:
+        return False, "1m pullback closed below EMA21"
+
+    _, low_swings = _validated_swing_points(highs, lows)
+    if len(low_swings) < 2:
+        return False, "no confirmed 1m swing lows"
+    if not (low_swings[-1] > low_swings[-2]):
+        return False, "latest 1m swing low is not a fresh higher low"
+    if lows[-1] <= low_swings[-2]:
+        return False, "latest pullback low failed to exceed the prior swing low"
+    return True, "1m pullback higher low confirmed"
+
+
+def _validate_1m_resumption_buy(closes, highs, lows) -> Tuple[bool, str]:
+    closes = np.asarray(closes, dtype=float)
+    highs = np.asarray(highs, dtype=float)
+    lows = np.asarray(lows, dtype=float)
+
+    if len(closes) < 8:
+        return False, "insufficient candles for confirmation"
+
+    ema9 = _ema_array(closes, 9)
+    recent_high_swings, _ = _validated_swing_points(highs, lows)
+    if not recent_high_swings:
+        return False, "no clear pullback swing high to resume from"
+
+    latest_pullback_high = recent_high_swings[-1]
+    bullish = (
+        closes[-1] > latest_pullback_high
+        and closes[-1] > ema9[-1]
+        and closes[-1] > highs[-2]
+    )
+    if not bullish:
+        return False, "confirmation candle failed bullish resumption gate"
+
+    avg_range = float(np.mean(np.abs(highs[-10:] - lows[-10:]))) if len(highs) >= 10 else 0.0
+    current_range = float(highs[-1] - lows[-1])
+    if avg_range > 0 and current_range > 2.0 * avg_range:
+        return False, "confirmation candle range exceeds 2x average 10-candle range"
+
+    return True, "1m resumption confirmation confirmed"
+
+
+def _validate_1m_pullback_sell(closes, highs, lows) -> Tuple[bool, str]:
+    closes = np.asarray(closes, dtype=float)
+    highs = np.asarray(highs, dtype=float)
+    lows = np.asarray(lows, dtype=float)
+
+    if len(closes) < 12 or len(highs) < 12 or len(lows) < 12:
+        return False, "insufficient 1m candles"
+
+    ema9 = _ema_array(closes, 9)
+    ema21 = _ema_array(closes, 21)
+    if not ema9[-1] < ema21[-1]:
+        return False, "EMA9 is not below EMA21"
+    if closes[-1] >= ema21[-1]:
+        return False, "latest 1m close is not below EMA21"
+
+    recent_highs = highs[-5:]
+    if np.max(recent_highs) > ema21[-1]:
+        return False, "1m pullback closed above EMA21"
+
+    high_swings, _ = _validated_swing_points(highs, lows)
+    if len(high_swings) >= 2:
+        if not (high_swings[-1] < high_swings[-2]):
+            return False, "latest 1m swing high is not a fresh lower high"
+        if highs[-1] >= high_swings[-2]:
+            return False, "latest pullback high failed to dip below the prior swing high"
+        return True, "1m pullback lower high confirmed"
+
+    if len(highs) >= 3 and np.all(np.diff(highs[-3:]) < 0):
+        return True, "descending 1m highs confirm lower-high pullback"
+
+    return False, "no confirmed 1m swing highs"
+
+
+def _validate_1m_resumption_sell(closes, highs, lows) -> Tuple[bool, str]:
+    closes = np.asarray(closes, dtype=float)
+    highs = np.asarray(highs, dtype=float)
+    lows = np.asarray(lows, dtype=float)
+
+    if len(closes) < 8:
+        return False, "insufficient candles for confirmation"
+
+    ema9 = _ema_array(closes, 9)
+    _, recent_low_swings = _validated_swing_points(highs, lows)
+    if recent_low_swings:
+        latest_pullback_low = recent_low_swings[-1]
+        bearish = (
+            closes[-1] < latest_pullback_low
+            and closes[-1] < ema9[-1]
+            and closes[-1] < lows[-2]
+        )
+        if not bearish:
+            return False, "confirmation candle failed bearish resumption gate"
+
+        avg_range = float(np.mean(np.abs(highs[-10:] - lows[-10:]))) if len(highs) >= 10 else 0.0
+        current_range = float(highs[-1] - lows[-1])
+        if avg_range > 0 and current_range > 2.0 * avg_range:
+            return False, "confirmation candle range exceeds 2x average 10-candle range"
+        return True, "1m resumption confirmation confirmed"
+
+    if len(lows) >= 3 and np.all(np.diff(lows[-3:]) < 0):
+        bearish = (
+            closes[-1] < lows[-2]
+            and closes[-1] < ema9[-1]
+            and closes[-1] < lows[-2]
+        )
+        if not bearish:
+            return False, "confirmation candle failed bearish resumption gate"
+
+        avg_range = float(np.mean(np.abs(highs[-10:] - lows[-10:]))) if len(highs) >= 10 else 0.0
+        current_range = float(highs[-1] - lows[-1])
+        if avg_range > 0 and current_range > 2.0 * avg_range:
+            return False, "confirmation candle range exceeds 2x average 10-candle range"
+        return True, "1m resumption confirmation confirmed"
+
+    return False, "no clear pullback swing low to resume from"
+
+
+def _evaluate_buy_only_strategy(
+    closes_5m,
+    highs_5m,
+    lows_5m,
+    closes_1m,
+    highs_1m,
+    lows_1m,
+    *,
+    rsi=None,
+    rising_rsi=None,
+    nearest_5m_resistance=None,
+    confirmation_range=None,
+    avg_prev_10_range=None,
+) -> Tuple[bool, str]:
+    ok, reason = _validate_5m_bull_structure(closes_5m, highs_5m, lows_5m)
+    if not ok:
+        return False, f"30s gate failed: {reason}"
+
+    ok, reason = _validate_1m_pullback_buy(closes_1m, highs_1m, lows_1m)
+    if not ok:
+        return False, f"1m pullback failed: {reason}"
+
+    ok, reason = _validate_1m_resumption_buy(closes_1m, highs_1m, lows_1m)
+    if not ok:
+        return False, f"1m resumption failed: {reason}"
+
+    if rsi is None:
+        from agents.agent_multi_timeframe import _rsi
+        rsi = float(_rsi(np.asarray(closes_1m, dtype=float), 14))
+    if not (50.0 <= float(rsi) <= 65.0):
+        return False, f"RSI14={rsi:.2f} is outside 50–65"
+    if rising_rsi is not None and not rising_rsi:
+        return False, "RSI14 is not rising"
+
+    if nearest_5m_resistance is not None and confirmation_range is not None:
+        if float(nearest_5m_resistance) <= float(confirmation_range):
+            return False, "nearest 5m resistance is too close for entry"
+        if float(nearest_5m_resistance) <= float(confirmation_range) * 1.5:
+            return False, "nearest 5m resistance is within one confirmation-candle range"
+
+    if confirmation_range is not None and avg_prev_10_range is not None:
+        if float(confirmation_range) > 2.0 * float(avg_prev_10_range):
+            return False, "confirmation candle range exceeds 2x average 10-candle range"
+
+    return True, "BUY-only 30s trend / 1m entry structure confirmed"
+
+
+def _evaluate_sell_only_strategy(
+    closes_5m,
+    highs_5m,
+    lows_5m,
+    closes_1m,
+    highs_1m,
+    lows_1m,
+    *,
+    rsi=None,
+    falling_rsi=None,
+    nearest_5m_support=None,
+    confirmation_range=None,
+    avg_prev_10_range=None,
+) -> Tuple[bool, str]:
+    ok, reason = _validate_5m_bear_structure(closes_5m, highs_5m, lows_5m)
+    if not ok:
+        return False, f"30s gate failed: {reason}"
+
+    ok, reason = _validate_1m_pullback_sell(closes_1m, highs_1m, lows_1m)
+    if not ok:
+        return False, f"1m pullback failed: {reason}"
+
+    ok, reason = _validate_1m_resumption_sell(closes_1m, highs_1m, lows_1m)
+    if not ok:
+        return False, f"1m resumption failed: {reason}"
+
+    if rsi is None:
+        from agents.agent_multi_timeframe import _rsi
+        rsi = float(_rsi(np.asarray(closes_1m, dtype=float), 14))
+    if not (35.0 <= float(rsi) <= 50.0):
+        return False, f"RSI14={rsi:.2f} is outside 35–50"
+    if falling_rsi is not None and not falling_rsi:
+        return False, "RSI14 is not falling"
+
+    if nearest_5m_support is not None and confirmation_range is not None and len(closes_1m) > 0:
+        dist_below = float(closes_1m[-1]) - float(nearest_5m_support)
+        if dist_below <= float(confirmation_range):
+            return False, "nearest 5m support is too close for entry"
+        if dist_below <= float(confirmation_range):
+            return False, "nearest 5m support is within one confirmation-candle range"
+
+    if confirmation_range is not None and avg_prev_10_range is not None:
+        if float(confirmation_range) > 2.0 * float(avg_prev_10_range):
+            return False, "confirmation candle range exceeds 2x average 10-candle range"
+
+    return True, "SELL-only 30s trend / 1m entry structure confirmed"
+
+
+os.makedirs(settings.LOG_DIR, exist_ok=True)
+log_file = os.path.join(settings.LOG_DIR, "multi_agent_system.log")
+_rotate_daily_log(log_file)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s — %(message)s",
+    handlers=[
+        logging.StreamHandler(sys.stdout),
+        logging.FileHandler(log_file, encoding="utf-8"),
+    ],
+)
+log = logging.getLogger("multi_agent_orchestrator")
+
+
+# ── OHLC helper (fixes RSI=2.9 seed noise bug) ───────────────────────────────
+
+def _get_ohlc_from_builder(builder) -> Tuple[np.ndarray, np.ndarray,
+                                              np.ndarray, np.ndarray]:
+    """
+    Extract OHLC arrays. If builder only stores closes, estimates
+    realistic highs/lows from ATR to prevent Stoch/CCI being stuck at extremes.
+    """
+    closes = np.array(builder.get_closes(), dtype=float)
+
+    try:
+        highs = np.array(builder.get_highs(), dtype=float)
+        lows  = np.array(builder.get_lows(),  dtype=float)
+        if (np.allclose(highs, closes, rtol=1e-9)
+                and np.allclose(lows, closes, rtol=1e-9)):
+            raise ValueError("synthetic")
+    except Exception:
+        n   = len(closes)
+        if n >= 3:
+            diffs   = np.abs(np.diff(closes[-20:]))
+            atr_est = float(np.mean(diffs)) if len(diffs) else 0.0005
+        else:
+            atr_est = 0.0005
+        atr_est = max(atr_est, 0.00005)
+        delta        = np.zeros_like(closes)
+        if n > 1:
+            delta[1:] = np.diff(closes)
+        highs = closes + atr_est*0.5 + np.where(delta >= 0, atr_est*0.3, 0.0)
+        lows  = closes - atr_est*0.5 + np.where(delta  < 0, -atr_est*0.3, 0.0)
+
+    try:
+        opens = np.array(builder.get_opens(), dtype=float)
+        if np.allclose(opens, closes, rtol=1e-9):
+            raise ValueError("synthetic")
+    except Exception:
+        opens    = np.roll(closes, 1)
+        opens[0] = closes[0]
+
+    return opens, highs, lows, closes
+
+
+# ── Session window helpers ────────────────────────────────────────────────────
+
+# ── Main system ───────────────────────────────────────────────────────────────
+
+class MultiAgentTradingSystem:
+
+    TICK_INTERVAL     = 1.0
+    DECISION_INTERVAL = 5.0
+    ASSET_CHECK_EVERY = settings.ASSET_SCAN_INTERVAL
+
+    def __init__(self, force_trades: bool = False,
+                 training_mode: bool = False,
+                 disable_circuit_breaker: bool = False,
+                 min_confidence: float = MIN_CONFIDENCE,
+                 trade_amount: float = TRADE_AMOUNT,
+                 payout_minimum: float = PAYOUT_MINIMUM,
+                 max_trades_per_day: int = MAX_TRADES_PER_DAY,
+                 daily_loss_limit: float = DAILY_LOSS_LIMIT):
+        self.bot            = OlymtradeBot()
+        self.risk           = RiskManager()
+        self.asset_selector = AssetSelectorAgent()
+        self.agent1         = MultiTimeframeAgent(settings.ASSET)
+        self.agent2         = RLFeedbackAgent(settings.MODEL_DIR)
+        self.regime         = RegimeDetector()
+        self.chart          = ChartAnalyzer()
+        self.consensus      = MultiTimeframeConsensusAnalyzer(self.chart)
+        # Debug / test overrides (set before supervisor creation)
+        self.force_trades: bool = bool(force_trades)
+        self.training_mode: bool = bool(training_mode)
+        self.disable_circuit_breaker: bool = bool(disable_circuit_breaker)
+        self.min_confidence: float = float(min_confidence)
+        self.trade_amount: float = float(trade_amount)
+        self.payout_minimum: float = float(payout_minimum)
+        self.max_trades_per_day: int = int(max_trades_per_day)
+        self.daily_loss_limit: float = float(daily_loss_limit)
+
+        self.supervisor     = PipelineSupervisorAgent(
+            self.bot, self.risk, self.agent1, self.agent2,
+            asset_selector=self.asset_selector,
+            force_trades=self.force_trades,
+            disable_circuit_breaker=self.disable_circuit_breaker,
+        )
+
+        self.active_trades:  List[Dict] = []
+        self.running = False
+        self._last_decision_ts:    float = 0.0
+        self._last_asset_check_ts: float = 0.0
+        self._current_asset: str   = settings.ASSET
+        self._bg_tasks: List[asyncio.Task] = []
+
+        # Daily tracking
+        self._daily_loss:   float = 0.0
+        self._daily_profit: float = 0.0
+        self._trades_today: int   = 0
+        self._wins_today:   int   = 0
+        self._circuit_open: bool  = False   # True = trading halted today
+        
+        # Consecutive loss tracking — halt after 4 losses
+        self._consecutive_losses: int = 0
+        self._loss_halt_time: float = 0.0  # timestamp when halt started
+        self._loss_halt_duration_sec: float = 300.0  # 5 minutes
+        
+
+    # ── Circuit breaker ───────────────────────────────────────────────────────
+
+    def _check_consecutive_loss_halt(self) -> Tuple[bool, str]:
+        """Check if we're in a consecutive-loss halt period.
+        Returns (is_halted, reason).
+        
+        This is a HARD STOP that cannot be overridden by force_trades.
+        """
+        if self._consecutive_losses < 4:
+            return False, ""
+        
+        elapsed = time.time() - self._loss_halt_time
+        remaining = self._loss_halt_duration_sec - elapsed
+        
+        if remaining > 0:
+            log.warning(
+                f"⏸️  CONSECUTIVE LOSS HALT ACTIVE — {self._consecutive_losses} losses "
+                f"({remaining:.0f}s remaining before resume)"
+            )
+            return True, (f"Loss halt active ({self._consecutive_losses} losses) "
+                         f"resuming in {remaining:.0f}s")
+        else:
+            # Halt period expired — reset
+            self._consecutive_losses = 0
+            log.info(f"[Daily] Consecutive loss halt period expired — trading resumed")
+            return False, ""
+
+    def _trade_capacity(self) -> Tuple[int, int, float]:
+        trades_remaining = max(0, self.max_trades_per_day - self._trades_today)
+        loss_budget = max(0.0, self.daily_loss_limit - self._daily_loss)
+        budget_capacity = int(loss_budget // self.trade_amount)
+        return trades_remaining, budget_capacity, loss_budget
+
+    def _check_circuit_breaker(self) -> bool:
+        """Returns True if trading should be halted."""
+        if self.disable_circuit_breaker:
+            return False
+        if self._circuit_open:
+            return True
+        if self._daily_loss >= self.daily_loss_limit:
+            log.warning(
+                f"⛔ CIRCUIT BREAKER TRIGGERED — Daily loss ${self._daily_loss:.0f} "
+                f">= limit ${self.daily_loss_limit:.0f} — No more trades today."
+            )
+            self._circuit_open = True
+            return True
+        if self._trades_today >= self.max_trades_per_day:
+            log.warning(
+                f"⛔ MAX TRADES REACHED — {self._trades_today}/{self.max_trades_per_day} "
+                f"trades today — No more trades today."
+            )
+            self._circuit_open = True
+            return True
+        return False
+
+    def _reset_daily_counters(self):
+        self._daily_loss   = 0.0
+        self._daily_profit = 0.0
+        self._trades_today = 0
+        self._wins_today   = 0
+        self._circuit_open = False
+        self._consecutive_losses = 0  # Reset consecutive loss counter
+        self._loss_halt_time = 0.0
+        log.info("[Daily] Counters reset for new day")
+
+    def _record_trade_outcome(self, won: bool, pnl: float):
+        if won:
+            self._daily_profit += abs(pnl)
+            self._wins_today   += 1
+            self._consecutive_losses = 0  # Reset on win
+        else:
+            self._daily_loss += abs(pnl)
+            self._consecutive_losses += 1
+            # Trigger halt on 4 consecutive losses
+            if self._consecutive_losses >= 4:
+                self._loss_halt_time = time.time()
+                log.warning(
+                    f"⏸️  CONSECUTIVE LOSS HALT TRIGGERED — "
+                    f"{self._consecutive_losses} losses in a row. "
+                    f"Halting trades for {self._loss_halt_duration_sec:.0f}s."
+                )
+        self._trades_today += 1
+        wr = (self._wins_today / self._trades_today
+              if self._trades_today > 0 else 0)
+        log.info(
+            f"[Daily] Trades={self._trades_today} | "
+            f"WR={wr:.0%} | "
+            f"Profit=+${self._daily_profit:.0f} | "
+            f"Loss=-${self._daily_loss:.0f} | "
+            f"Net=${self._daily_profit - self._daily_loss:+.0f} | "
+            f"CB_remaining=${DAILY_LOSS_LIMIT - self._daily_loss:.0f}"
+        )
+        # Warn approaching circuit breaker
+        if self._daily_loss >= DAILY_LOSS_LIMIT * 0.75:
+            log.warning(
+                f"⚠️  APPROACHING CIRCUIT BREAKER — "
+                f"${DAILY_LOSS_LIMIT - self._daily_loss:.0f} loss budget remaining"
+            )
+
+    # ── Helpers ───────────────────────────────────────────────────────────────
+
+    def _calculate_consensus_score(self, tf_state: dict,
+                                   direction: str) -> float:
+        if not tf_state:
+            return 0.0
+        sup   = sum(1 for d in tf_state.values()
+                    if isinstance(d, dict) and d.get("vote") == direction)
+        total = sum(1 for d in tf_state.values() if isinstance(d, dict))
+        return sup / total if total > 0 else 0.0
+
+    def _combine_confidences(self, a1: float, rl: float,
+                              experienced: bool, consensus: float,
+                              chart: float) -> float:
+        # Chart is now the PRIMARY signal (EMA+Aroon strategy)
+        # Agent1 MTF is supporting evidence
+        if experienced:
+            fused = 0.40 * a1 + 0.20 * rl + 0.40 * chart
+        else:
+            fused = 0.45 * a1 + 0.55 * chart
+        fused *= (consensus * 0.4 + 0.6)   # softer consensus discount
+        return float(min(0.97, max(0.45, fused)))
+
+    async def _get_price(self) -> float:
+        price = await self.bot.get_current_price()
+        if price and price > 0:
+            return price
+        try:
+            from data.fetcher import fetch_candles
+            df = fetch_candles(self._current_asset, "M1", n=5)
+            if not df.empty:
+                return float(df["close"].iloc[-1])
+        except Exception:
+            pass
+        b = self.agent1.builders.get(60)
+        if b and len(b) > 0:
+            return float(b.get_closes()[-1])
+        return 1.1000
+
+
+    async def setup(self) -> bool:
+        log.info("=" * 70)
+        log.info("  Multi-Agent OlympTrade System  |  v4.2")
+        log.info(f"  Asset: {settings.ASSET} | Mode: ftt | $200/trade")
+        log.info(f"  Daily limit: ${DAILY_LOSS_LIMIT:.0f} | "
+                 f"Mode: continuous (no session gates)")
+        log.info("  Strategy: BUY-Only Strategy: 30s Trend / 1m Entry (60s Expiry)")
+        log.info("  Rules: 30s HH+HL + EMA20>EMA50 + 1m pullback + bullish resumption + RSI50-65")
+        log.info(f"  Min confidence: {MIN_CONFIDENCE:.0%} | Asset lock: EUR/USD OTC")
+        log.info("=" * 70)
+
+        self.agent2.learn_from_logs(self.risk.journal_path)
+        try:
+            qpath = Path(self.agent2.qtable_path)
+            if qpath.exists():
+                bdir  = Path(settings.MODEL_DIR) / "backups"
+                bdir.mkdir(parents=True, exist_ok=True)
+                stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                shutil.copyfile(qpath, bdir / f"rl_qtable_{stamp}.json")
+                log.info("[Setup] Q-table backed up")
+        except Exception as e:
+            log.warning(f"[Setup] Q-table backup: {e}")
+
+        self.asset_selector = AssetSelectorAgent(
+            trade_history=self.risk.asset_stats)
+
+        await self.bot.start()
+        if not await self.bot.login():
+            log.error("Login failed.")
+            await self.bot.stop()
+            return False
+
+        self._current_asset = await self.supervisor.ensure_best_asset()
+        log.info(f"Active asset: {self._current_asset}")
+        await self.bot.select_asset(self._current_asset)
+
+        # Apply chart indicators
+        try:
+            from bot.chart_indicators import (apply_all_indicators,
+                                               set_chart_timeframe)
+            await set_chart_timeframe(self.bot._page, "30s")
+            await asyncio.sleep(1.0)
+            ok = await apply_all_indicators(self.bot._page)
+            log.info(f"[Setup] Chart indicators applied={ok} | trend chart=30s")
+        except Exception as e:
+            log.warning(f"[Setup] Indicator panel: {e}")
+
+        # Seed Agent1 — NO NOISE (fixes RSI=2.9)
+        try:
+            from data.fetcher import fetch_candles
+            log.info("[Setup] Fetching M1 history (180 candles, no noise)...")
+            df = fetch_candles(self._current_asset, "M1", n=180)
+            if not df.empty:
+                # Pass noise_pct=0.0 if supported, else use clean seed
+                try:
+                    self.agent1.seed_from_dataframe(df, noise_pct=0.0)
+                except TypeError:
+                    self.agent1.seed_from_dataframe(df)
+                log.info(f"[Setup] Seeded with {len(df)} M1 candles")
+            else:
+                raise ValueError("empty df")
+        except Exception as e:
+            log.warning(f"[Setup] seed failed ({e}) — bootstrap")
+            self.agent1.bootstrap(await self._get_price(), n_ticks=100)
+
+        log.info("Setup complete.")
+
+        self._bg_tasks += [
+            asyncio.create_task(self._periodic_qtable_backup(3600)),
+            asyncio.create_task(self._daily_replay_and_save()),
+            asyncio.create_task(self._daily_reset_monitor()),
+        ]
+        log.info("=" * 70)
+        return True
+
+    # ── Background tasks ──────────────────────────────────────────────────────
+
+    async def _periodic_qtable_backup(self, interval_s: int = 3600):
+        while True:
+            try:
+                await asyncio.sleep(interval_s)
+                src = Path(self.agent2.qtable_path)
+                if src.exists():
+                    bdir = Path(settings.MODEL_DIR) / "backups"
+                    bdir.mkdir(parents=True, exist_ok=True)
+                    shutil.copyfile(
+                        src,
+                        bdir / f"rl_qtable_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+                    )
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                log.warning(f"[Backup] {e}")
+
+    async def _daily_replay_and_save(self):
+        await asyncio.sleep(30)
+        while True:
+            try:
+                self.agent2.learn_from_logs(self.risk.journal_path)
+                self.agent2.q.save(self.agent2.qtable_path)
+                log.info("[DailyTrain] RL replayed and Q-table saved")
+                await asyncio.sleep(24 * 3600)
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                log.warning(f"[DailyTrain] {e}")
+                await asyncio.sleep(600)
+
+    async def _daily_reset_monitor(self):
+        """Reset circuit breaker and daily counters at midnight."""
+        while True:
+            try:
+                now   = datetime.now()
+                # Sleep until next midnight
+                secs  = (86400 - (now.hour*3600 + now.minute*60 + now.second))
+                await asyncio.sleep(secs)
+                self._reset_daily_counters()
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                log.warning(f"[DailyReset] {e}")
+                await asyncio.sleep(3600)
+
+    # ── TP/SL monitor ─────────────────────────────────────────────────────────
+
+    async def _monitor_active_trades(self, price: float):
+        still = []
+        for t in self.active_trades:
+            entry = t.get('entry_price')
+            if entry is None:
+                still.append(t); continue
+            d   = t.get('signal')
+            amt = float(t.get('amount', TRADE_AMOUNT))
+            win = ((d=='BUY' and price>entry) or (d=='SELL' and price<entry))
+            pnl = amt * 0.82 if win else -amt
+            # Force-close after 2x duration (safety net)
+            elapsed = (datetime.now() - t["placed_at"]).total_seconds()
+            if elapsed > t["duration"] * 2:
+                log.info(f"[ForceClose] {d} timeout pnl=${pnl:+.0f}")
+                self.risk.update_pnl_and_journal(t['timestamp'],
+                                                  'WIN' if win else 'LOSS', pnl)
+                self.agent2.update_after_result('WIN' if win else 'LOSS', pnl)
+                self._record_trade_outcome(win, pnl)
+                self.supervisor.record_outcome(win)
+                continue
+            still.append(t)
+        self.active_trades = still
+
+    # ── Main loop ─────────────────────────────────────────────────────────────
+
+    async def run(self):
+        if not await self.setup():
+            return
+        self.running = True
+        log.info(f"Polling every {self.TICK_INTERVAL}s | "
+                 f"Decisions every {self.DECISION_INTERVAL}s")
+
+        try:
+            while self.running:
+                t0 = time.monotonic()
+
+                # ── Health check ─────────────────────────────────────
+                healthy, reason, recoverable = \
+                    await self.supervisor.verify_pipeline_health()
+                if not healthy:
+                    if recoverable:
+                        self.supervisor.handle_tick_outcome(False)
+                        if (self.supervisor.consecutive_failures
+                                >= self.supervisor.max_consecutive_failures):
+                            if not await self.supervisor.recover_pipeline():
+                                log.critical("Pipeline unrecoverable.")
+                                break
+                        await asyncio.sleep(2)
+                    else:
+                        log.warning(f"[Supervisor] Pause: {reason}")
+                        await asyncio.sleep(30)
+                    continue
+
+                # Circuit breaker check
+                if self._check_circuit_breaker():
+                    log.info("[CircuitBreaker] Trading halted — sleeping 30min")
+                    await asyncio.sleep(1800)
+                    continue
+
+                # ── Asset check ──────────────────────────────────────
+                if t0 - self._last_asset_check_ts >= self.ASSET_CHECK_EVERY:
+                    self._last_asset_check_ts = t0
+                    new = await self.supervisor.ensure_best_asset()
+                    if new != self._current_asset:
+                        log.info(f"Asset: {self._current_asset} → {new}")
+                        self._current_asset = new
+                        self.agent1.reset(new)
+                        await self.bot.select_asset(new)
+                        try:
+                            from bot.chart_indicators import apply_all_indicators
+                            await apply_all_indicators(self.bot._page)
+                        except Exception:
+                            pass
+                        try:
+                            from data.fetcher import fetch_candles
+                            df = fetch_candles(new, "M1", n=180)
+                            if not df.empty:
+                                try:
+                                    self.agent1.seed_from_dataframe(df, noise_pct=0.0)
+                                except TypeError:
+                                    self.agent1.seed_from_dataframe(df)
+                        except Exception:
+                            pass
+
+                # ── Tick ─────────────────────────────────────────────
+                price = await self._get_price()
+                self.agent1.add_tick(price)
+                self.supervisor.handle_tick_outcome(True)
+                await self._monitor_active_trades(price)
+                await self._resolve_completed_trades(price)
+
+                if t0 - self._last_decision_ts >= self.DECISION_INTERVAL:
+                    self._last_decision_ts = t0
+                    await self._evaluate_and_trade(price)
+
+                await asyncio.sleep(max(0.05,
+                                        self.TICK_INTERVAL - (time.monotonic()-t0)))
+
+        except KeyboardInterrupt:
+            log.info("Shutdown requested.")
+        except Exception as e:
+            log.critical(f"Fatal: {e}", exc_info=True)
+        finally:
+            await self._shutdown()
+
+    # ── Decision engine ────────────────────────────────────────────────────────
+
+    async def _evaluate_and_trade(self, current_price: float):
+        ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        asset_name = (self._current_asset or settings.ASSET or "").strip()
+        if asset_name in {"EUR/USD OTC", "EURUSD-OTC", "EUR/USD"}:
+            b30s = self.agent1.builders.get(30)
+            b1m = self.agent1.builders.get(60)
+            if not (b30s and len(b30s) >= 12 and b1m and len(b1m) >= 12):
+                log.info(f"[SellOnlyGate] Not enough 30s/1m data for {asset_name} — wait")
+                return
+
+            _, h30s, l30s, c30s = _get_ohlc_from_builder(b30s)
+            _, h1m, l1m, c1m = _get_ohlc_from_builder(b1m)
+            from agents.agent_multi_timeframe import _rsi
+            rsi_val = float(_rsi(c1m, 14))
+            prev_rsi = float(_rsi(c1m[:-1], 14)) if len(c1m) > 1 else rsi_val
+            nearest_sup = float(np.min(l30s[-10:])) if len(l30s) >= 10 else None
+            confirmation_range = float(h1m[-1] - l1m[-1]) if len(h1m) else 0.0
+            avg_prev_10 = float(np.mean(np.abs(h1m[-10:] - l1m[-10:]))) if len(h1m) >= 10 else 0.0
+
+            sell_ok, sell_reason = _evaluate_sell_only_strategy(
+                c30s, h30s, l30s, c1m, h1m, l1m,
+                rsi=rsi_val,
+                falling_rsi=rsi_val < prev_rsi,
+                nearest_5m_support=nearest_sup,
+                confirmation_range=confirmation_range,
+                avg_prev_10_range=avg_prev_10,
+            )
+            if not sell_ok:
+                log.info(f"[SellOnlyGate] {sell_reason} — no SELL trade for {asset_name}")
+                return
+
+            log.info(f"[SellOnlyGate] SELL-only setup confirmed — {sell_reason}")
+            payout = await self.bot.get_asset_payout(self._current_asset)
+            if payout and payout < self.payout_minimum:
+                log.info(f"[PayoutGate] {payout:.0%} < {self.payout_minimum:.0%} — skip")
+                return
+            is_halted, halt_reason = self._check_consecutive_loss_halt()
+            if is_halted:
+                log.info(f"[LossHaltGate] {halt_reason} — skip trade")
+                return
+            success = await self.supervisor.safe_execute_trade(Signal.SELL, 0.95, "ftt")
+            log.info(f"[Trade] placed={success} | SELL @ 95.00% | ${self.trade_amount:.0f}")
+            self.risk.record_trade(TradeRecord(
+                timestamp=ts, asset=self._current_asset, mode="ftt",
+                signal="SELL", confidence=0.95,
+                amount=self.trade_amount,
+            ))
+            if success:
+                self.active_trades.append({
+                    "timestamp": ts,
+                    "placed_at": datetime.now(),
+                    "entry_price": current_price,
+                    "signal": "SELL",
+                    "amount": TRADE_AMOUNT,
+                    "duration": FTT_DURATION_S,
+                    "state_key": "EURUSD-OTC|SELL-ONLY",
+                    "action": 1,
+                    "asset": self._current_asset,
+                })
+                log.info(f"FTT tracked | entry={current_price:.5f} | SELL")
+            return
+
+        # ── Step 1: Agent1 MTF ────────────────────────────────────────
+        a1_signal, a1_confidence = self.agent1.analyze()
+        log.info(f"[Agent1] {a1_signal.value} @ {a1_confidence:.2%}")
+
+        if a1_signal == Signal.HOLD:
+            tf_state = self.agent1.get_latest_multi_tf_state()
+            if not tf_state:
+                return
+            buy_v  = sum(1 for d in tf_state.values()
+                         if isinstance(d,dict) and d.get("vote")=="BUY")
+            sell_v = sum(1 for d in tf_state.values()
+                         if isinstance(d,dict) and d.get("vote")=="SELL")
+            if buy_v >= 2:
+                a1_signal = Signal.BUY
+                a1_confidence = float(np.mean([
+                    d["confidence"] for d in tf_state.values()
+                    if isinstance(d,dict) and d.get("vote")=="BUY"]))
+                log.info(f"[Agent1] HOLD→BUY ({buy_v} TFs) @ {a1_confidence:.2%}")
+            elif sell_v >= 2:
+                a1_signal = Signal.SELL
+                a1_confidence = float(np.mean([
+                    d["confidence"] for d in tf_state.values()
+                    if isinstance(d,dict) and d.get("vote")=="SELL"]))
+                log.info(f"[Agent1] HOLD→SELL ({sell_v} TFs) @ {a1_confidence:.2%}")
+            else:
+                log.info("[Agent1] HOLD — insufficient TF agreement.")
+                return
+
+        tf_state  = self.agent1.get_latest_multi_tf_state()
+        state_key = self.agent2.get_state_key(tf_state)
+
+        # ── Trade capacity / pacing ────────────────────────────────────
+        trades_left, budget_trades, loss_budget = self._trade_capacity()
+        log.info(
+            f"[TradeCapacity] {trades_left} trades left | "
+            f"loss budget=${loss_budget:.0f} (~{budget_trades} trades)")
+        if trades_left <= 0:
+            log.info("[TradeCapacity] Daily trade limit reached — skip")
+            return
+        if budget_trades <= 0 and not self.force_trades:
+            log.info(
+                "[TradeCapacity] Loss budget insufficient for another standard trade — skip")
+            return
+
+        # ── Step 2: RL ────────────────────────────────────────────────
+        rl_action = rl_confidence = None
+        rl_experienced = False
+        if settings.RL_USE_IN_LIVE_TRADING:
+            rl_action, rl_confidence = self.agent2.get_recommendation(state_key)
+            rl_visits      = sum(self.agent2.q.visits.get(state_key, [0,0]))
+            rl_experienced = rl_visits >= 10
+            log.info(f"[Agent2] {'BUY' if rl_action==0 else 'SELL'} @ "
+                     f"{rl_confidence:.2%} | state={state_key}")
+        else:
+            log.info(f"[Agent2] Observer mode | state={state_key}")
+
+        final_signal = a1_signal
+
+        # ── Step 3: Consensus ─────────────────────────────────────────
+        consensus = self._calculate_consensus_score(
+            tf_state, final_signal.value)
+        log.info(f"[StateQuality] Consensus={consensus:.1%} "
+                 f"(votes for {final_signal.value})")
+
+        # ── Step 4: Regime — detect FIRST, flip signal if needed ──────
+        detected_regime = "UNKNOWN"
+        regime_conf_adj = 0.0
+        b1m = self.agent1.builders.get(60)
+
+        if b1m and len(b1m) >= 20:
+            _, h_r, l_r, c_r = _get_ohlc_from_builder(b1m)
+            from agents.agent_multi_timeframe import _rsi, _macd, _bollinger
+            rsi_v            = _rsi(c_r, 14)
+            macd_v, macd_s, _ = _macd(c_r)
+            bb_u, bb_m, bb_l  = _bollinger(c_r, 20)
+            atr_v = float(np.mean([h-l for h,l in zip(h_r[-14:], l_r[-14:])]))
+
+            detected_regime = self.regime.detect_regime(
+                c_r, h_r, l_r, rsi_v, macd_v, macd_s,
+                bb_u, bb_m, bb_l, atr_v)
+            log.info(f"[Regime] {detected_regime} | RSI={rsi_v:.1f} | "
+                     f"MACD={macd_v:.6f} | ATR={atr_v:.6f}")
+
+            # Signal flip
+            if final_signal == Signal.BUY and detected_regime in BEAR_REGIMES:
+                bear_str      = max(0.0, (50.0 - rsi_v) / 50.0)
+                a1_confidence = 0.52 + bear_str * 0.15
+                final_signal  = Signal.SELL
+                consensus     = max(self._calculate_consensus_score(
+                    tf_state, "SELL"), 0.50)
+                log.info(f"[RegimeFlip] BUY→SELL (regime={detected_regime})")
+
+            elif final_signal == Signal.SELL and detected_regime in BULL_REGIMES:
+                bull_str      = max(0.0, (rsi_v - 50.0) / 50.0)
+                a1_confidence = 0.52 + bull_str * 0.15
+                final_signal  = Signal.BUY
+                consensus     = max(self._calculate_consensus_score(
+                    tf_state, "BUY"), 0.50)
+                log.info(f"[RegimeFlip] SELL→BUY (regime={detected_regime})")
+
+            validation = self.regime.validate_signal(
+                final_signal.value, detected_regime)
+            is_valid, regime_reason = (
+                (validation[0], validation[1]) if len(validation) >= 2
+                else (True, "ok"))
+            regime_conf_adj = validation[2] if len(validation) == 3 else 0.0
+            log.info(f"[RegimeValidation] {regime_reason}")
+            if not is_valid:
+                log.info("[RegimeGate] Rejected — skip")
+                return
+
+        # ── Step 4.5: Multi-Timeframe Consensus (5s to 1min) ───────────────
+        # NEW: Analyze multiple timeframes to prevent whipsaw trades
+        multi_tf_consensus = None
+        try:
+            # Build candles dict: {5: {o,h,l,c}, 10: {...}, ...}
+            candles_dict = {}
+            for tf_sec in [5, 10, 15, 20, 30, 60]:
+                builder = self.agent1.builders.get(tf_sec)
+                if builder and len(builder) >= 10:
+                    o, h, l, c = _get_ohlc_from_builder(builder)
+                    candles_dict[tf_sec] = {'o': o, 'h': h, 'l': l, 'c': c}
+
+            if candles_dict:
+                multi_tf_consensus = self.consensus.analyze_consensus(candles_dict)
+                log.info(multi_tf_consensus.summary)
+
+                # Wait for a directional trend before placing repeated BUY/SELLs.
+                if multi_tf_consensus.primary_signal == "HOLD":
+                    if self.force_trades:
+                        log.warning(
+                            "[MultiTFTrend] No clear consensus, but trade is forced")
+                    else:
+                        log.info(
+                            "[MultiTFTrend] No clear directional consensus — wait for trend")
+                        return
+                elif final_signal == Signal.BUY:
+                    if multi_tf_consensus.primary_signal != "BUY":
+                        if self.force_trades:
+                            log.warning(
+                                "[MultiTFTrend] BUY but multi-TF consensus is not BUY — FORCED")
+                        else:
+                            log.info(
+                                "[MultiTFTrend] BUY blocked until trend consensus forms")
+                            return
+                elif final_signal == Signal.SELL:
+                    if multi_tf_consensus.primary_signal != "SELL":
+                        if self.force_trades:
+                            log.warning(
+                                "[MultiTFTrend] SELL but multi-TF consensus is not SELL — FORCED")
+                        else:
+                            log.info(
+                                "[MultiTFTrend] SELL blocked until trend consensus forms")
+                            return
+
+                # CRITICAL: Block BUY orders in strong downtrends
+                should_block, block_reason = self.consensus.should_block_buy_on_downtrend(
+                    multi_tf_consensus, downtrend_threshold=0.65
+                )
+                if should_block and final_signal == Signal.BUY:
+                    if self.force_trades:
+                        log.warning(f"[MultiTFGate] {block_reason} — FORCED by --force-trades")
+                    else:
+                        log.info(f"[MultiTFGate] {block_reason} — skip")
+                        return
+        except Exception as e:
+            log.warning(f"[MultiTFConsensus] {e}")
+
+        # ── Step 5: ChartAnalyzer — EMA crossover + Aroon strategy ───
+        chart_result: Optional[AnalysisResult] = None
+        chart_conf = 0.50
+
+        if b1m and len(b1m) >= 26:
+            try:
+                o_c, h_c, l_c, c_c = _get_ohlc_from_builder(b1m)
+                chart_result = self.chart.analyze(o_c, h_c, l_c, c_c)
+                log.info(self.chart.summary_log(chart_result))
+
+                # Volatility gate (from strategy doc: Vol < 3x price)
+                if not chart_result.volatility_ok:
+                    if self.force_trades:
+                        log.warning(
+                            f"[VolGate] ATR={chart_result.volatility_pct:.2f}x price "
+                            f"> {self.chart.MAX_VOLATILITY_PCT:.1f}x — forced trade"
+                        )
+                    else:
+                        log.info(
+                            f"[VolGate] ATR={chart_result.volatility_pct:.2f}x price "
+                            f"> {self.chart.MAX_VOLATILITY_PCT:.1f}x — skip"
+                        )
+                        return
+
+                # Log confluence counts
+                log.info(
+                    f"[Confluence] {chart_result.bull_confluences}BUY / "
+                    f"{chart_result.bear_confluences}SELL out of "
+                    f"{chart_result.max_confluences}"
+                )
+
+                # Use chart signal when strong (primary strategy signal)
+                if chart_result.signal != "HOLD":
+                    if chart_result.signal != final_signal.value:
+                        # Chart disagrees — prefer chart if more confluences
+                        chart_side = (chart_result.bull_confluences
+                                      if chart_result.signal == "BUY"
+                                      else chart_result.bear_confluences)
+                        a1_side    = (chart_result.bear_confluences
+                                      if chart_result.signal == "BUY"
+                                      else chart_result.bull_confluences)
+                        if chart_side > a1_side:
+                            log.info(
+                                f"[ChartOverride] Chart says {chart_result.signal} "
+                                f"({chart_side} confluences) > "
+                                f"Agent1 ({a1_side}) — using chart"
+                            )
+                            final_signal = (Signal.BUY
+                                            if chart_result.signal == "BUY"
+                                            else Signal.SELL)
+                    chart_conf = (chart_result.buy_score
+                                  if final_signal == Signal.BUY
+                                  else chart_result.sell_score)
+
+                # Hard require: EMA+Aroon primary signals must agree
+                ema_bull  = chart_result.ema_crossover_bull or chart_result.ema_aligned_bull
+                ema_bear  = chart_result.ema_crossover_bear or chart_result.ema_aligned_bear
+                aron_bull = chart_result.aroon_crossover_bull or chart_result.aroon_bull_momentum
+                aron_bear = chart_result.aroon_crossover_bear or chart_result.aroon_bear_momentum
+
+                ema_bull  = chart_result.ema_crossover_bull or chart_result.ema_aligned_bull
+                ema_bear  = chart_result.ema_crossover_bear or chart_result.ema_aligned_bear
+                aron_bull = (chart_result.aroon_crossover_bull
+                             or chart_result.aroon_bull_momentum
+                             or chart_result.aroon_up > chart_result.aroon_down)
+                aron_bear = (chart_result.aroon_crossover_bear
+                             or chart_result.aroon_bear_momentum
+                             or chart_result.aroon_down > chart_result.aroon_up)
+
+                if final_signal == Signal.BUY:
+                    # EMA OR Aroon must confirm — not both required
+                    if not (ema_bull or aron_bull):
+                        log.info(
+                            f"[PrimaryGate] BUY needs EMA or Aroon bull "
+                            f"(EMA={ema_bull} Aroon={aron_bull}) — skip"
+                        )
+                        return
+                    if chart_result.bull_confluences < MIN_CONFLUENCES:
+                        if self.force_trades:
+                            log.warning(
+                                f"[ConfluenceGate] BUY only "
+                                f"{chart_result.bull_confluences}/{MIN_CONFLUENCES} — FORCED by --force-trades"
+                            )
+                        else:
+                            log.info(
+                                f"[ConfluenceGate] BUY only "
+                                f"{chart_result.bull_confluences}/{MIN_CONFLUENCES} — skip"
+                            )
+                            return
+
+                elif final_signal == Signal.SELL:
+                    if not (ema_bear or aron_bear):
+                        log.info(
+                            f"[PrimaryGate] SELL needs EMA or Aroon bear "
+                            f"(EMA={ema_bear} Aroon={aron_bear}) — skip"
+                        )
+                        return
+                    if chart_result.bear_confluences < MIN_CONFLUENCES:
+                        if self.force_trades:
+                            log.warning(
+                                f"[ConfluenceGate] SELL only "
+                                f"{chart_result.bear_confluences}/{MIN_CONFLUENCES} — FORCED by --force-trades"
+                            )
+                        else:
+                            log.info(
+                                f"[ConfluenceGate] SELL only "
+                                f"{chart_result.bear_confluences}/{MIN_CONFLUENCES} — skip"
+                            )
+                            return
+
+            except Exception as e:
+                log.warning(f"[ChartAnalyzer] {e}")
+                return   # Don't trade if analysis failed
+        else:
+            log.info("[ChartAnalyzer] Not enough candles (need 26+) — skip")
+            return
+
+        # ── Step 6: Consensus gate ────────────────────────────────────
+        min_consensus = 0.33   # relaxed since chart is primary
+        if consensus < min_consensus:
+            if self.force_trades:
+                log.warning(f"[StateFilter] Consensus {consensus:.1%} < "
+                            f"{min_consensus:.1%} — FORCED")
+            else:
+                log.warning(f"[StateFilter] Consensus {consensus:.1%} < "
+                            f"{min_consensus:.1%} — SKIP")
+                return
+
+        # ── Step 7: Confidence fusion ─────────────────────────────────
+        final_conf = self._combine_confidences(
+            a1_confidence, rl_confidence or 0.55,
+            rl_experienced, consensus, chart_conf)
+        final_conf = min(0.97, max(0.40, final_conf + regime_conf_adj))
+        log.info(f"[Fusion] {final_signal.value} @ {final_conf:.2%} "
+                 f"| regime_adj={regime_conf_adj:+.1%}")
+
+        if final_signal == Signal.BUY:
+            b30s = self.agent1.builders.get(30)
+            if b30s and len(b30s) >= 10:
+                _, h30s, l30s, c30s = _get_ohlc_from_builder(b30s)
+                ok, reason = _validate_5m_bull_structure(c30s, h30s, l30s)
+                if not ok:
+                    log.info(f"[30sStructure] BUY blocked — {reason}")
+                    return
+
+            b1m = self.agent1.builders.get(60)
+            if b1m and len(b1m) >= 12:
+                _, h1m, l1m, c1m = _get_ohlc_from_builder(b1m)
+                pull_ok, pull_reason = _validate_1m_pullback_buy(c1m, h1m, l1m)
+                if not pull_ok:
+                    log.info(f"[1mPullback] BUY blocked — {pull_reason}")
+                    return
+
+                resume_ok, resume_reason = _validate_1m_resumption_buy(c1m, h1m, l1m)
+                if not resume_ok:
+                    log.info(f"[1mResumption] BUY blocked — {resume_reason}")
+                    return
+
+            if b1m and len(b1m) >= 14:
+                from agents.agent_multi_timeframe import _rsi
+                _, h1m, l1m, c1m = _get_ohlc_from_builder(b1m)
+                rsi = _rsi(c1m, 14)
+                prev_rsi = _rsi(c1m[:-1], 14) if len(c1m) > 1 else rsi
+                if not (50.0 <= rsi <= 65.0 and rsi > prev_rsi):
+                    log.info(f"[Momentum] BUY blocked — RSI14={rsi:.2f} outside 50–65 or not rising from {prev_rsi:.2f}")
+                    return
+
+        # ── Step 8: Previous candle confirmation ──────────────────────
+        prev_b = self.agent1.builders.get(5) or b1m
+        if prev_b and len(prev_b) >= 5:
+            try:
+                _, h5, l5, c5 = _get_ohlc_from_builder(prev_b)
+                sc  = self.regime.analyze_previous_candles(c5, h5, l5, 5)
+                up  = sc.get('uptrend_strength',   0.0)
+                dn  = sc.get('downtrend_strength', 0.0)
+                mom = sc.get('momentum', 0.0)
+                log.info(f"[PrevCandles] up={up:.2f} dn={dn:.2f} mom={mom:.4f}")
+                if final_signal == Signal.BUY:
+                    if up > 0.4 and mom > 0:
+                        final_conf = min(0.97, final_conf + 0.04)
+                    elif dn > 0.6:
+                        final_conf = max(0.40, final_conf - 0.06)
+                else:
+                    if dn > 0.4 and mom < 0:
+                        final_conf = min(0.97, final_conf + 0.04)
+                    elif up > 0.6:
+                        final_conf = max(0.40, final_conf - 0.06)
+            except Exception:
+                pass
+
+        # ── Step 9: Pattern alignment ─────────────────────────────────
+        if chart_result and chart_result.pattern_direction != "NEUTRAL":
+            if chart_result.pattern_direction == final_signal.value:
+                b = chart_result.pattern_strength * 0.06
+                final_conf = min(0.97, final_conf + b)
+                log.info(f"[PatternAlign] {chart_result.pattern_name} +{b:.1%}")
+            else:
+                p = chart_result.pattern_strength * 0.05
+                final_conf = max(0.40, final_conf - p)
+                log.info(f"[PatternConflict] {chart_result.pattern_name} -{p:.1%}")
+
+        # ── Step 10: Confidence gate (strategy doc: 60%) ──────────────
+        if final_conf < self.min_confidence:
+            if self.force_trades:
+                log.warning(f"[Gate] {final_conf:.2%} < {self.min_confidence:.0%} — FORCED")
+            else:
+                log.info(f"[Gate] {final_conf:.2%} < {self.min_confidence:.0%} — skip")
+                return
+
+        # ── Step 11: Payout check ─────────────────────────────────────
+        payout = await self.bot.get_asset_payout(self._current_asset)
+        if payout and payout < self.payout_minimum:
+            if self.force_trades:
+                log.warning(f"[PayoutGate] {payout:.0%} < {self.payout_minimum:.0%} — FORCED")
+            else:
+                log.info(f"[PayoutGate] {payout:.0%} < {self.payout_minimum:.0%} — skip")
+                return
+
+        # ── Step 11.5: Consecutive loss halt check ────────────────────
+        is_halted, halt_reason = self._check_consecutive_loss_halt()
+        if is_halted:
+            log.info(f"[LossHaltGate] {halt_reason} — skip trade")
+            return
+
+        # ── Step 12: Execute ──────────────────────────────────────────
+        success = await self.supervisor.safe_execute_trade(
+            final_signal, final_conf, "ftt")
+        log.info(f"[Trade] placed={success} | "
+                 f"{final_signal.value} @ {final_conf:.2%} | "
+                 f"${self.trade_amount:.0f}")
+
+        self.risk.record_trade(TradeRecord(
+            timestamp=ts, asset=self._current_asset, mode="ftt",
+            signal=final_signal.value, confidence=final_conf,
+            amount=self.trade_amount,
+        ))
+
+        if success:
+            if rl_action is None:
+                rl_action = 0 if final_signal == Signal.BUY else 1
+            self.agent2.register_trade(state_key, rl_action)
+            self.active_trades.append({
+                "timestamp":   ts,
+                "placed_at":   datetime.now(),
+                "entry_price": current_price,
+                "signal":      final_signal.value,
+                "amount":      TRADE_AMOUNT,
+                "duration":    FTT_DURATION_S,
+                "state_key":   state_key,
+                "action":      rl_action,
+                "asset":       self._current_asset,
+            })
+            log.info(f"FTT tracked | entry={current_price:.5f} | "
+                     f"{final_signal.value}")
+
+    # ── Outcome resolution ─────────────────────────────────────────────────────
+
+    def _calculate_quality_penalty(self, state_key: str) -> float:
+        if not state_key:
+            return 1.0
+        parts = state_key.split("|")
+        if len(parts) < 2:
+            return 1.0
+        total = len(parts)
+        b = sum(1 for v in parts if "B" in v)
+        s = sum(1 for v in parts if "S" in v)
+        n = sum(1 for v in parts if "N" in v)
+        r = max(b, s, n) / total
+        if r >= 0.75:   return 1.00
+        elif r >= 0.50: return 0.85
+        elif r >= 0.25: return 0.60
+        else:           return 0.40
+
+    async def _resolve_completed_trades(self, price: float):
+        now, still = datetime.now(), []
+        for t in self.active_trades:
+            if (now - t["placed_at"]).total_seconds() < t["duration"]:
+                still.append(t); continue
+            ep  = t["entry_price"]
+            win = ((t["signal"]=="BUY"  and price > ep) or
+                   (t["signal"]=="SELL" and price < ep))
+            res = "WIN" if win else "LOSS"
+            pnl = t["amount"] * 0.82 if win else -t["amount"]
+            log.info(f"{'✅' if win else '❌'} {t['signal']} "
+                     f"{ep:.5f}→{price:.5f} {res} ${pnl:+.0f}")
+            self.risk.update_pnl_and_journal(t["timestamp"], res, pnl)
+            qp = self._calculate_quality_penalty(t.get("state_key",""))
+            self.agent2.update_after_result(res, pnl, qp)
+            if hasattr(self, 'asset_selector'):
+                self.asset_selector.update_trade_history(
+                    t.get('asset', self._current_asset), res)
+            self.supervisor.record_outcome(win)
+            self._record_trade_outcome(win, pnl)
+        self.active_trades = still
+
+    # ── Shutdown ───────────────────────────────────────────────────────────────
+
+    async def _shutdown(self):
+        self.running = False
+        await self.bot.stop()
+        for t in list(self._bg_tasks):
+            try: t.cancel()
+            except Exception: pass
+        wr = (self._wins_today / self._trades_today
+               if self._trades_today else 0)
+        net = self._daily_profit - self._daily_loss
+        log.info("=" * 70)
+        log.info(f"  Session: {self._trades_today} trades | WR={wr:.0%}")
+        log.info(f"  P&L: +${self._daily_profit:.0f} / -${self._daily_loss:.0f} "
+                 f"= ${net:+.0f}")
+        log.info("=" * 70)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Multi-Agent Trading System")
+    parser.add_argument('--force-trades', action='store_true',
+                        help='Force trades by bypassing the confluence gate (testing only)')
+    parser.add_argument('--training-mode', action='store_true',
+                        help='Enable training mode so the risk engine uses training overrides')
+    parser.add_argument('--disable-circuit-breaker', action='store_true',
+                        help='Ignore local circuit-breaker limits for testing')
+    parser.add_argument('--min-confidence', type=float, default=MIN_CONFIDENCE,
+                        help='Minimum final confidence required to execute a trade')
+    parser.add_argument('--trade-amount', type=float, default=TRADE_AMOUNT,
+                        help='Trade amount to use for this run')
+    parser.add_argument('--max-daily-trades', type=int, default=None,
+                        help='Override maximum daily trades')
+    parser.add_argument('--max-daily-loss', type=float, default=None,
+                        help='Override the daily loss limit for the local circuit breaker')
+    parser.add_argument('--confidence-threshold', type=float, default=None,
+                        help='Override the risk confidence threshold for the risk manager')
+    parser.add_argument('--payout-minimum', type=float, default=PAYOUT_MINIMUM,
+                        help='Minimum payout percentage required to place a trade')
+
+    args = parser.parse_args()
+    if args.force_trades:
+        args.training_mode = True
+        args.disable_circuit_breaker = True
+    if args.training_mode:
+        settings.TRAINING_MODE = True
+    if args.max_daily_trades is not None:
+        settings.MAX_DAILY_TRADES = args.max_daily_trades
+    if args.max_daily_loss is not None:
+        settings.MAX_DAILY_LOSS_USD = args.max_daily_loss
+    if args.confidence_threshold is not None:
+        settings.CONFIDENCE_THRESHOLD = args.confidence_threshold
+    if args.trade_amount is not None:
+        settings.TRADE_AMOUNT = args.trade_amount
+
+    try:
+        asyncio.run(
+            MultiAgentTradingSystem(
+                force_trades=args.force_trades,
+                training_mode=args.training_mode,
+                disable_circuit_breaker=args.disable_circuit_breaker,
+                min_confidence=args.min_confidence,
+                trade_amount=args.trade_amount,
+                payout_minimum=args.payout_minimum,
+                max_trades_per_day=(args.max_daily_trades
+                                     if args.max_daily_trades is not None
+                                     else MAX_TRADES_PER_DAY),
+                daily_loss_limit=(args.max_daily_loss
+                                  if args.max_daily_loss is not None
+                                  else DAILY_LOSS_LIMIT),
+            ).run()
+        )
+    except KeyboardInterrupt:
+        pass

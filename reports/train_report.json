@@ -1,0 +1,74 @@
+[
+  {
+    "asset": "EURUSD",
+    "tf": "M1",
+    "status": "trained",
+    "model_dir": "models/EURUSD_M1"
+  },
+  {
+    "asset": "EURUSD",
+    "tf": "M5",
+    "status": "trained",
+    "model_dir": "models/EURUSD_M5"
+  },
+  {
+    "asset": "EURUSD",
+    "tf": "M15",
+    "status": "trained",
+    "model_dir": "models/EURUSD_M15"
+  },
+  {
+    "asset": "GBPUSD",
+    "tf": "M1",
+    "status": "trained",
+    "model_dir": "models/GBPUSD_M1"
+  },
+  {
+    "asset": "GBPUSD",
+    "tf": "M5",
+    "status": "trained",
+    "model_dir": "models/GBPUSD_M5"
+  },
+  {
+    "asset": "GBPUSD",
+    "tf": "M15",
+    "status": "trained",
+    "model_dir": "models/GBPUSD_M15"
+  },
+  {
+    "asset": "USDJPY",
+    "tf": "M1",
+    "status": "trained",
+    "model_dir": "models/USDJPY_M1"
+  },
+  {
+    "asset": "USDJPY",
+    "tf": "M5",
+    "status": "trained",
+    "model_dir": "models/USDJPY_M5"
+  },
+  {
+    "asset": "USDJPY",
+    "tf": "M15",
+    "status": "trained",
+    "model_dir": "models/USDJPY_M15"
+  },
+  {
+    "asset": "BTCUSD",
+    "tf": "M1",
+    "status": "trained",
+    "model_dir": "models/BTCUSD_M1"
+  },
+  {
+    "asset": "BTCUSD",
+    "tf": "M5",
+    "status": "trained",
+    "model_dir": "models/BTCUSD_M5"
+  },
+  {
+    "asset": "BTCUSD",
+    "tf": "M15",
+    "status": "trained",
+    "model_dir": "models/BTCUSD_M15"
+  }
+]
